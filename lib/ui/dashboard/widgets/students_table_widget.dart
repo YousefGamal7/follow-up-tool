@@ -1,6 +1,8 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/dashboard_provider.dart';
+import '../../../theme/modern_styles.dart';
 import 'student_row_widget.dart';
 
 class StudentsTableWidget extends StatelessWidget {
@@ -40,16 +42,38 @@ class StudentsTableWidget extends StatelessWidget {
           );
         }
 
-        return SingleChildScrollView(
-          scrollDirection: Axis.vertical,
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              showCheckboxColumn: true,
-              columns: tableColumns,
-              rows: provider.filteredStudents
-                  .map((s) => buildStudentRow(context, s, provider))
-                  .toList(),
+        return Container(
+          margin: const EdgeInsets.only(top: 16, bottom: 16, right: 16),
+          child: ClipRRect(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                decoration: ModernStyles.glassPanel(context),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.vertical,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: DataTable(
+                      headingRowColor: WidgetStateProperty.all(
+                        Theme.of(context).colorScheme.primary.withOpacity(0.1)
+                      ),
+                      dataRowColor: WidgetStateProperty.resolveWith<Color?>(
+                        (Set<WidgetState> states) {
+                          if (states.contains(WidgetState.hovered)) {
+                            return Theme.of(context).colorScheme.primary.withOpacity(0.05);
+                          }
+                          return null;
+                        },
+                      ),
+                      showCheckboxColumn: true,
+                      columns: tableColumns,
+                      rows: provider.filteredStudents
+                          .map((s) => buildStudentRow(context, s, provider))
+                          .toList(),
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
         );

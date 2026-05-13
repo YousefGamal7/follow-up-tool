@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../models/student.dart';
 import '../../../providers/dashboard_provider.dart';
+import '../../../theme/modern_styles.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'screenshot_dialog.dart';
 
 DataRow buildStudentRow(
@@ -24,7 +26,7 @@ DataRow buildStudentRow(
           ),
           if (alreadySent)
             const Icon(
-              Icons.check_circle,
+              LucideIcons.checkCircle2,
               color: Colors.green,
               size: 16,
             ),
@@ -60,31 +62,40 @@ DataRow buildStudentRow(
       Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          IconButton(
-            icon: const Icon(
-              Icons.camera_alt,
-              color: Colors.purple,
+          Container(
+            decoration: ModernStyles.glowingContainer(context, glowColor: Colors.purple, opacity: 0.3, borderRadius: 8),
+            child: IconButton(
+              icon: const Icon(
+                LucideIcons.camera,
+                color: Colors.purple,
+                size: 20,
+              ),
+              tooltip: 'Generate visual student report',
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => ScreenshotDialog(
+                    student: s,
+                    assignments: provider.assignments,
+                  ),
+                );
+              },
             ),
-            tooltip: 'Generate visual student report',
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) => ScreenshotDialog(
-                  student: s,
-                  assignments: provider.assignments,
-                ),
-              );
-            },
           ),
-          IconButton(
-            icon: const Icon(
-              Icons.healing,
-              color: Colors.orange,
+          const SizedBox(width: 8),
+          Container(
+            decoration: ModernStyles.glowingContainer(context, glowColor: Colors.orange, opacity: 0.3, borderRadius: 8),
+            child: IconButton(
+              icon: const Icon(
+                LucideIcons.minusCircle,
+                color: Colors.orange,
+                size: 20,
+              ),
+              tooltip: 'Excuse from assignments',
+              onPressed: () {
+                _showExcuseDialog(context, s, provider);
+              },
             ),
-            tooltip: 'Excuse from assignments',
-            onPressed: () {
-              _showExcuseDialog(context, s, provider);
-            },
           ),
         ],
       ),

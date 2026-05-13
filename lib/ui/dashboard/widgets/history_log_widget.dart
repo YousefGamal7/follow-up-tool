@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/dashboard_provider.dart';
 
+import '../../../theme/modern_styles.dart';
+
 class HistoryLogWidget extends StatelessWidget {
   const HistoryLogWidget({Key? key}) : super(key: key);
 
@@ -11,10 +13,7 @@ class HistoryLogWidget extends StatelessWidget {
       builder: (context, provider, child) {
         return Container(
           padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.grey[900],
-            borderRadius: BorderRadius.circular(12),
-          ),
+          decoration: ModernStyles.glowingContainer(context, opacity: 0.1),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

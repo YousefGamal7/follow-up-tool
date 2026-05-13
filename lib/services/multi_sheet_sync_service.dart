@@ -241,7 +241,7 @@ class MultiSheetSyncService {
   Future<int> syncGradesToStatus(String assignmentCol, {required String sheetName}) async {
     final gradesSs = await _gradesSpreadsheetFuture;
     final sheet = gradesSs.worksheetByTitle(sheetName);
-    
+
     if (sheet == null) {
       throw Exception("Required sheet '$sheetName' not found.");
     }
@@ -259,11 +259,14 @@ class MultiSheetSyncService {
 
     final headers = allRows[headerRowIndex];
     final lowerHeaders = headers.map((e) => e.toString().toLowerCase().trim()).toList();
-    
-    // Email is column 0 based on gmail check
-    final emailCol = 0;
+
+    // FIX 1: Dynamically find the email column in the source sheet instead of hardcoding to 0
+    int emailCol = lowerHeaders.indexOf('gmail');
+    if (emailCol == -1) emailCol = lowerHeaders.indexOf('mail');
+    if (emailCol == -1) emailCol = 0; // Fallback to 0 only if not found
+
     final assignCol = lowerHeaders.indexOf(assignmentCol.toLowerCase().trim());
-    
+
     if (assignCol == -1) {
       throw Exception("Required column '$assignmentCol' not found in $sheetName sheet.");
     }
@@ -272,14 +275,14 @@ class MultiSheetSyncService {
     String trackingSheetName = sheetName;
     final followUpSs = await _followUpSpreadsheetFuture;
     var trackingSheet = followUpSs.worksheetByTitle(trackingSheetName);
-    
+
     if (trackingSheet == null) {
       trackingSheet = await followUpSs.addWorksheet(trackingSheetName);
-      // Initialize headers
-      await trackingSheet.values.insertRow(1, ['Gmail', assignmentCol]);
+      await trackingSheet.values.insertRow(1, ['email', assignmentCol]);
     }
 
-    final trackingAllRows = await trackingSheet.values.allRows();
+    // Fetch tracking rows, use var so we can update it if it was empty
+    var trackingAllRows = await trackingSheet.values.allRows();
     int tHeaderRowIndex = -1;
     for (int i = 0; i < trackingAllRows.length; i++) {
       if (_isHeaderRow(trackingAllRows[i])) {
@@ -289,29 +292,28 @@ class MultiSheetSyncService {
     }
 
     if (tHeaderRowIndex == -1) {
-      // Fallback to row 0 if no 'gmail' found, or we just created it
       tHeaderRowIndex = 0;
       if (trackingAllRows.isEmpty) {
         await trackingSheet.values.insertRow(1, ['Gmail', assignmentCol]);
+        // Update trackingAllRows so our length calculation below is correct
+        trackingAllRows = [['Gmail', assignmentCol]];
       }
     }
 
-    final trackingHeaders = await trackingSheet.values.row(tHeaderRowIndex + 1);
+    final trackingHeaders = trackingAllRows[tHeaderRowIndex];
     final trackingLowerHeaders = trackingHeaders.map((e) => e.toString().toLowerCase().trim()).toList();
-    
+
     int tEmailCol = trackingLowerHeaders.indexOf('gmail');
     if (tEmailCol == -1) tEmailCol = trackingLowerHeaders.indexOf('mail');
-    if (tEmailCol == -1) tEmailCol = 0; // Assume column 0
+    if (tEmailCol == -1) tEmailCol = 0;
 
     int tAssignCol = trackingLowerHeaders.indexOf(assignmentCol.toLowerCase().trim());
 
     if (tAssignCol == -1) {
-      // Create assignment column in Tracking sheet if missing
       tAssignCol = trackingHeaders.length;
       await trackingSheet.values.insertValue(assignmentCol, column: tAssignCol + 1, row: tHeaderRowIndex + 1);
     }
 
-    // Map existing tracking emails to row index
     final trackingEmailToRow = <String, int>{};
     for (int i = tHeaderRowIndex + 1; i < trackingAllRows.length; i++) {
       if (trackingAllRows[i].length > tEmailCol) {
@@ -322,45 +324,50 @@ class MultiSheetSyncService {
 
     int updatedCount = 0;
     List<String> trackingAssigns = await trackingSheet.values.column(tAssignCol + 1);
-    
-    // Find emails and grades in Grades sheet
+
+    // FIX 2: Create a variable to track the actual next available row at the very bottom
+    int nextAvailableRowIdx = trackingAllRows.length;
+
     for (int i = headerRowIndex + 1; i < allRows.length; i++) {
       final row = allRows[i];
       if (row.length > assignCol) {
-         final gradeVal = row[assignCol].toString().trim();
-         if (gradeVal.isNotEmpty) {
-            final email = row[emailCol].toString().toLowerCase().trim();
-            if (email.isNotEmpty) {
-               int tIdx;
-               if (trackingEmailToRow.containsKey(email)) {
-                  tIdx = trackingEmailToRow[email]!; 
-               } else {
-                  // If email not in Tracking sheet, add it!
-                  tIdx = trackingAllRows.length > tHeaderRowIndex + 1 ? trackingAllRows.length : tHeaderRowIndex + 1;
-                  // We'll append it to tracking sheet. But wait, `trackingEmailToRow` is local indexing.
-                  // It's easier to append the email to the sheet, but let's just insert it.
-                  await trackingSheet.values.insertValue(email, column: tEmailCol + 1, row: trackingEmailToRow.length + tHeaderRowIndex + 2);
-                  tIdx = trackingEmailToRow.length + tHeaderRowIndex + 1;
-                  trackingEmailToRow[email] = tIdx;
-               }
-               
-               if (trackingAssigns.length <= tIdx) {
-                 trackingAssigns.addAll(List.filled(tIdx - trackingAssigns.length + 1, ''));
-               }
-               
-               if (trackingAssigns[tIdx].toLowerCase() != 'submitted') {
-                 trackingAssigns[tIdx] = 'Submitted';
-                 updatedCount++;
-               }
+        final gradeVal = row[assignCol].toString().trim();
+
+        if (gradeVal.isNotEmpty) {
+          final email = row[emailCol].toString().toLowerCase().trim();
+          if (email.isNotEmpty) {
+            int tIdx;
+
+            if (trackingEmailToRow.containsKey(email)) {
+              tIdx = trackingEmailToRow[email]!;
+            } else {
+              // Assign the new student to the absolute bottom row
+              tIdx = nextAvailableRowIdx;
+              nextAvailableRowIdx++; // Increment for the next potential new student
+
+              // insertValue uses 1-based indexing, so add 1 to tIdx
+              await trackingSheet.values.insertValue(email, column: tEmailCol + 1, row: tIdx + 1);
+              trackingEmailToRow[email] = tIdx;
             }
-         }
+
+            // Pad the assignments column list if it's too short
+            if (trackingAssigns.length <= tIdx) {
+              trackingAssigns.addAll(List.filled(tIdx - trackingAssigns.length + 1, ''));
+            }
+
+            if (trackingAssigns[tIdx].toLowerCase() != 'submitted') {
+              trackingAssigns[tIdx] = 'Submitted';
+              updatedCount++;
+            }
+          }
+        }
       }
     }
 
     if (updatedCount > 0) {
       await trackingSheet.values.insertColumn(tAssignCol + 1, trackingAssigns, fromRow: 1);
     }
-    
+
     return updatedCount;
   }
 
