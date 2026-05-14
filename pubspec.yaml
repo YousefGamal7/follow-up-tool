@@ -39,12 +39,14 @@ dependencies:
   http:
   gsheets:
   url_launcher:
-  shared_preferences:
+  shared_preferences: ^2.5.5
   screenshot:
-  path_provider:
+  path_provider: ^2.1.5
   googleapis: ^11.4.0
   googleapis_auth: ^1.6.0
   lucide_icons: ^0.257.0
+  pdf: ^3.12.0
+  printing: ^5.14.3
 
 dev_dependencies:
   flutter_test:

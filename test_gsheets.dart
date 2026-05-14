@@ -31,7 +31,7 @@ void main() async {
   // Find header row
   int gHeaderRow = -1;
   for (int i = 0; i < gradesRows.length && i < 10; i++) {
-    if (gradesRows[i].isNotEmpty && gradesRows[i][0].toLowerCase().contains('gmail')) {
+    if (gradesRows[i].isNotEmpty && gradesRows[i][0].toLowerCase().contains('mail')) {
       gHeaderRow = i;
       break;
     }

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:gsheets/gsheets.dart';
 import 'package:googleapis/sheets/v4.dart' as sheets;
 import 'package:googleapis_auth/auth_io.dart';
+import '../models/report_models.dart';
 
 class MultiSheetSyncService {
   // ⚠️ WARNING: Hardcoding service account keys in the app is not recommended for production security.
@@ -638,5 +639,115 @@ class MultiSheetSyncService {
       print("Error in applyTickets: $e");
       rethrow;
     }
+  }
+
+  Future<Map<String, List<ReportAssignment>>> getAllGroupAssignmentsReport(String sheetName, List<String> availableGroups) async {
+    Map<String, List<ReportAssignment>> allGroupsMap = {};
+    for (String group in availableGroups) {
+      if (group == 'All') continue;
+      allGroupsMap[group] = await getAssignmentsReport(sheetName, groupName: group);
+    }
+    return allGroupsMap;
+  }
+
+  Future<List<ReportAssignment>> getAssignmentsReport(String sheetName, {String? groupName}) async {
+    final gradesSs = await _gradesSpreadsheetFuture;
+    final sheet = gradesSs.worksheetByTitle(sheetName);
+    if (sheet == null) throw Exception("Sheet '$sheetName' not found.");
+
+    final allRows = await sheet.values.allRows();
+    int headerRowIndex = -1;
+    for (int i = 0; i < allRows.length; i++) {
+      if (_isHeaderRow(allRows[i])) {
+        headerRowIndex = i;
+        break;
+      }
+    }
+    
+    if (headerRowIndex == -1) throw Exception("Header row not found.");
+
+    final headers = allRows[headerRowIndex];
+    
+    int firstTaskCol = -1;
+    for (int j = 0; j < headers.length; j++) {
+      if (headers[j].toString().trim().toLowerCase() == 'submission') {
+        firstTaskCol = j + 1;
+        break;
+      }
+    }
+    if (firstTaskCol == -1) firstTaskCol = 4;
+
+    List<ReportAssignment> assignments = [];
+    
+    for (int j = firstTaskCol; j < headers.length; j++) {
+      String taskName = headers[j].toString().trim();
+      if (taskName.isEmpty || taskName.contains("Full Mark")) continue;
+
+      int submitted = 0;
+      int missing = 0;
+      String deadline = '';
+
+      String currentGroup = "No Group";
+      bool isDeadlinesRow = false;
+
+      for (int i = headerRowIndex + 1; i < allRows.length; i++) {
+         if (allRows[i].isEmpty) continue;
+         String firstCell = allRows[i][0].toString().trim();
+         
+         if (firstCell.toLowerCase().contains("group")) {
+           currentGroup = firstCell;
+           isDeadlinesRow = true; // The row immediately after a group header is the deadlines row
+           continue; 
+         }
+         
+         if (isDeadlinesRow) {
+           isDeadlinesRow = false;
+           // Only grab the deadline if we are in the target group (or if no group is specified, we grab the first one we see)
+           if (groupName == null || groupName == 'All' || currentGroup == groupName) {
+             if (deadline.isEmpty && allRows[i].length > j) {
+               String rawDeadline = allRows[i][j].toString().trim();
+               // Serial date format check (e.g. 46150)
+               if (int.tryParse(rawDeadline) != null) {
+                  // convert serial date to string roughly, or just display as is if we can't.
+                  // For now, let's format it or keep it empty if it's a huge number.
+                  // Actually, let's just keep the raw value or map it. A proper serial date conversion:
+                  int days = int.parse(rawDeadline);
+                  if (days > 40000) {
+                     DateTime date = DateTime(1899, 12, 30).add(Duration(days: days));
+                     deadline = "${date.day}/${date.month}";
+                  } else {
+                     deadline = rawDeadline;
+                  }
+               } else {
+                 deadline = rawDeadline;
+               }
+             }
+           }
+           continue; 
+         }
+
+         if (firstCell.isEmpty || firstCell.toLowerCase() == "gmail") continue;
+         
+         if (groupName != null && groupName != 'All' && currentGroup != groupName) {
+           continue;
+         }
+
+         String val = allRows[i].length > j ? allRows[i][j].toString().trim() : '';
+         if (val.isNotEmpty) {
+            submitted++;
+         } else {
+            missing++;
+         }
+      }
+
+      assignments.add(ReportAssignment(
+         name: taskName,
+         submitted: submitted,
+         missing: missing,
+         deadline: deadline,
+      ));
+    }
+
+    return assignments;
   }
 }
