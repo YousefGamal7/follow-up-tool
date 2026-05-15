@@ -24,6 +24,9 @@ class DashboardProvider extends ChangeNotifier {
   List<String> instructors = [
     'Yousef Gamal',
     'Mahmoud Ibrahim',
+    'Abdelrahman Youssef',
+    'Rana Osama',
+    'Ali Mohamed',
   ];
   List<String> groups = ['All'];
   List<String> assignments = [];
