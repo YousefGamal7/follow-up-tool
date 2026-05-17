@@ -45,10 +45,10 @@ class _AdvancedTeamReportView extends StatelessWidget {
               builder: (context) {
                 return IconButton(
                   icon: const Icon(Icons.picture_as_pdf),
-                  tooltip: 'Export as PDF',
+                  tooltip: 'Generate & Share PDF',
                   onPressed: () {
                     final provider = context.read<ReportProvider>();
-                    PdfService.generateAndPrintTeamReport(
+                    PdfService.generateAndShareTeamReport(
                       allGroupAssignments: provider.allActiveAssignments,
                       workshops: provider.workshops,
                       attendance: provider.attendanceRecords,
@@ -356,6 +356,17 @@ class _WorkshopsTab extends StatelessWidget {
                     Expanded(
                       child: TextField(
                         controller: startCtrl, 
+                        readOnly: true,
+                        onTap: () async {
+                          final picked = await showTimePicker(
+                            context: ctx,
+                            initialTime: TimeOfDay.now(),
+                          );
+                          if (!ctx.mounted) return;
+                          if (picked != null) {
+                            startCtrl.text = picked.format(ctx);
+                          }
+                        },
                         decoration: InputDecoration(
                           labelText: 'Start Time', 
                           prefixIcon: const Icon(Icons.schedule),
@@ -367,6 +378,17 @@ class _WorkshopsTab extends StatelessWidget {
                     Expanded(
                       child: TextField(
                         controller: endCtrl, 
+                        readOnly: true,
+                        onTap: () async {
+                          final picked = await showTimePicker(
+                            context: ctx,
+                            initialTime: TimeOfDay.now(),
+                          );
+                          if (!ctx.mounted) return;
+                          if (picked != null) {
+                            endCtrl.text = picked.format(ctx);
+                          }
+                        },
                         decoration: InputDecoration(
                           labelText: 'End Time', 
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -495,7 +517,7 @@ class _AttendanceTab extends StatelessWidget {
     final dayCtrl = TextEditingController();
     final arriveCtrl = TextEditingController();
     final endCtrl = TextEditingController();
-    final branchNameCtrl = TextEditingController();
+    final branchNameCtrl = TextEditingController(text: 'Dokki');
     final provider = context.read<ReportProvider>();
 
     showModalBottomSheet(
@@ -543,6 +565,8 @@ class _AttendanceTab extends StatelessWidget {
                     );
                     if (picked != null) {
                       dateCtrl.text = '${picked.day}/${picked.month}/${picked.year}';
+                      const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                      dayCtrl.text = days[picked.weekday - 1];
                     }
                   },
                   decoration: InputDecoration(

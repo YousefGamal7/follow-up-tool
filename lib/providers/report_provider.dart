@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/report_models.dart';
 import '../services/multi_sheet_sync_service.dart';
+import '../services/firestore_sync_service.dart';
 
 class ReportProvider extends ChangeNotifier {
   final String instructor;
@@ -100,6 +101,55 @@ class ReportProvider extends ChangeNotifier {
     }
 
     notifyListeners();
+
+    // Sync with Firestore
+    _syncWithFirestore();
+  }
+
+  Future<void> _syncWithFirestore() async {
+    final firestoreSync = FirestoreSyncService();
+    
+    // Fetch from Firestore
+    final firestoreWorkshops = await firestoreSync.fetchWorkshops();
+    final firestoreAttendance = await firestoreSync.fetchAttendance();
+
+    // Combine local and Firestore data, removing duplicates based on unique identifiers
+    final Map<String, WorkshopSession> mergedWorkshops = {};
+    for (var w in firestoreWorkshops) {
+      final key = '${w.topic}_${w.date}_${w.startTime}';
+      mergedWorkshops[key] = w;
+    }
+    for (var w in _workshops) {
+      final key = '${w.topic}_${w.date}_${w.startTime}';
+      if (!mergedWorkshops.containsKey(key)) {
+        mergedWorkshops[key] = w;
+        // Push local only to Firestore
+        firestoreSync.syncWorkshop(w);
+      }
+    }
+    _workshops = mergedWorkshops.values.toList();
+
+    final Map<String, BranchAttendance> mergedAttendance = {};
+    for (var a in firestoreAttendance) {
+      final key = '${a.branchName}_${a.week}_${a.date}';
+      mergedAttendance[key] = a;
+    }
+    for (var a in _attendanceRecords) {
+      final key = '${a.branchName}_${a.week}_${a.date}';
+      if (!mergedAttendance.containsKey(key)) {
+        mergedAttendance[key] = a;
+        // Push local only to Firestore
+        firestoreSync.syncAttendanceRecord(a);
+      }
+    }
+    _attendanceRecords = mergedAttendance.values.toList();
+
+    notifyListeners();
+
+    // Update local storage with merged data
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('workshops_data', jsonEncode(_workshops.map((e) => e.toJson()).toList()));
+    await prefs.setString('attendance_data', jsonEncode(_attendanceRecords.map((e) => e.toJson()).toList()));
   }
 
   Future<void> addWorkshop(WorkshopSession session) async {
@@ -111,6 +161,9 @@ class ReportProvider extends ChangeNotifier {
       _workshops.map((e) => e.toJson()).toList(),
     );
     await prefs.setString('workshops_data', encoded);
+
+    final firestoreSync = FirestoreSyncService();
+    await firestoreSync.syncWorkshop(session);
   }
 
   Future<void> addAttendance(BranchAttendance record) async {
@@ -122,5 +175,8 @@ class ReportProvider extends ChangeNotifier {
       _attendanceRecords.map((e) => e.toJson()).toList(),
     );
     await prefs.setString('attendance_data', encoded);
+
+    final firestoreSync = FirestoreSyncService();
+    await firestoreSync.syncAttendanceRecord(record);
   }
 }

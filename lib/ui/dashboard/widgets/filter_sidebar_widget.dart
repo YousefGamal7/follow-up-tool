@@ -28,7 +28,7 @@ class FilterSidebarWidget extends StatelessWidget {
                       children: [
                         _buildDrop(
                           context,
-                          "Instructor",
+                          "Mentor",
                           provider.instructors,
                           provider.selectedInstructor,
                           provider.setInstructor,
