@@ -41,8 +41,10 @@ class _WeeklyReportView extends StatelessWidget {
   Widget _buildFilterSection(WeeklyReportProvider provider) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 8.0,
+        runSpacing: 8.0,
         children: provider.availableGroups.map((group) {
           final isSelected = provider.selectedGroup == group;
           return Padding(

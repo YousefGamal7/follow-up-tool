@@ -140,9 +140,34 @@ class DashboardProvider extends ChangeNotifier {
   }
 
   Future<void> launchWhatsAppWeb(Student s, BuildContext context, List<String> assignments, String customMessage) async {
-    final String url =
-        "https://web.whatsapp.com/send?phone=${s.phone}&text=${Uri.encodeComponent(customMessage)}";
-    if (await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication)) {
+    final bool isAndroid = Theme.of(context).platform == TargetPlatform.android;
+    bool launched = false;
+
+    if (isAndroid) {
+      // Try WhatsApp Business first
+      final String waBusinessUrl = "intent://send?phone=${s.phone}&text=${Uri.encodeComponent(customMessage)}#Intent;package=com.whatsapp.w4b;scheme=whatsapp;end;";
+      try {
+        launched = await launchUrl(Uri.parse(waBusinessUrl), mode: LaunchMode.externalApplication);
+      } catch (_) {}
+      
+      // If WhatsApp Business is not installed, fallback to normal WhatsApp App
+      if (!launched) {
+        final String waNormalUrl = "whatsapp://send?phone=${s.phone}&text=${Uri.encodeComponent(customMessage)}";
+        try {
+          launched = await launchUrl(Uri.parse(waNormalUrl), mode: LaunchMode.externalApplication);
+        } catch (_) {}
+      }
+    }
+
+    // Fallback for Windows/Web or if Android intents fail
+    if (!launched) {
+      final String webUrl = "https://web.whatsapp.com/send?phone=${s.phone}&text=${Uri.encodeComponent(customMessage)}";
+      try {
+        launched = await launchUrl(Uri.parse(webUrl), mode: LaunchMode.externalApplication);
+      } catch (_) {}
+    }
+
+    if (launched) {
       await markAsSent(s.phone);
       _addLog("WhatsApp launched for ${s.name}");
       
@@ -351,6 +376,35 @@ class DashboardProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> noAnswerStudent(BuildContext context, Student s, List<String> assignmentsToMark) async {
+    if (assignmentsToMark.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select assignments.')),
+      );
+      return;
+    }
+
+    isLoading = true;
+    notifyListeners();
+    
+    String identifier = s.email ?? s.name; // Use email if available
+
+    try {
+      await _multiSheetSyncService.addNoAnswerStatus(
+        email: identifier,
+        assignments: assignmentsToMark,
+        sheetName: selectedInstructor!,
+      );
+      _addLog("Marked No Answer for $identifier on ${assignmentsToMark.join(', ')}");
+      await fetchData();
+    } catch (e) {
+      _addLog("Failed to mark No Answer for $identifier: $e");
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> syncGradesToStatus(String task) async {
     isLoading = true;
     notifyListeners();
@@ -399,6 +453,25 @@ class DashboardProvider extends ChangeNotifier {
     } finally {
       isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<void> clearLocalCache(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    sentPhones.clear();
+    savedTemplates.clear();
+    selectedTemplate = null;
+    _addLog("Local cache cleared.");
+    notifyListeners();
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✅ Local cache cleared successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
     }
   }
 }

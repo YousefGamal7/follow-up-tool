@@ -15,7 +15,7 @@ class FilterSidebarWidget extends StatelessWidget {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
-          width: 320,
+          width: double.infinity,
           margin: const EdgeInsets.all(16),
           decoration: ModernStyles.glassPanel(context),
           child: Column(

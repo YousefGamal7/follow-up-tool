@@ -44,6 +44,17 @@ class _AdvancedTeamReportView extends StatelessWidget {
             Builder(
               builder: (context) {
                 return IconButton(
+                  icon: const Icon(Icons.delete_sweep),
+                  tooltip: 'Clear Workshops & Attendance Cache',
+                  onPressed: () {
+                    context.read<ReportProvider>().clearLocalCache(context);
+                  },
+                );
+              }
+            ),
+            Builder(
+              builder: (context) {
+                return IconButton(
                   icon: const Icon(Icons.picture_as_pdf),
                   tooltip: 'Generate & Share PDF',
                   onPressed: () {

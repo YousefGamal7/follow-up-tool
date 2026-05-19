@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "767097936113",
+    "project_id": "follow-up-tool-7f866",
+    "storage_bucket": "follow-up-tool-7f866.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:767097936113:android:42050e69af5e4546b7b150",
+        "android_client_info": {
+          "package_name": "com.example.send_message"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDotnAfTFY4MoodeIfmwNUX6IguM-ViSXc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

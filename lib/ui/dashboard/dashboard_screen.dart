@@ -14,10 +14,24 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: const Text('Smart Student Tracking System'),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isDesktop = constraints.maxWidth >= 800;
+        return Scaffold(
+          extendBodyBehindAppBar: true,
+          drawer: isDesktop
+              ? null
+              : Drawer(
+                  backgroundColor: isDark
+                      ? const Color(0xFF1E1114).withOpacity(0.9)
+                      : const Color(0xFFFFF5F5).withOpacity(0.9),
+                  child: const SafeArea(child: FilterSidebarWidget()),
+                ),
+          appBar: AppBar(
+            title: Text(
+              isDesktop ? 'Smart Student Tracking System' : 'Tracking System',
+              overflow: TextOverflow.ellipsis,
+            ),
         actions: [
           IconButton(
             icon: const Icon(LucideIcons.barChart2),
@@ -73,6 +87,15 @@ class DashboardScreen extends StatelessWidget {
               );
             },
           ),
+          Consumer<DashboardProvider>(
+            builder: (context, provider, child) {
+              return IconButton(
+                onPressed: () => provider.clearLocalCache(context),
+                icon: const Icon(LucideIcons.trash2),
+                tooltip: "Clear Local Cache",
+              );
+            },
+          ),
         ],
       ),
       body: Container(
@@ -86,16 +109,20 @@ class DashboardScreen extends StatelessWidget {
           ),
         ),
         child: SafeArea(
-          child: Row(
-            children: const [
-              FilterSidebarWidget(),
-              Expanded(
-                child: StudentsTableWidget(),
-              ),
-            ],
-          ),
+          child: isDesktop
+              ? Row(
+                  children: const [
+                    SizedBox(width: 320, child: FilterSidebarWidget()),
+                    Expanded(
+                      child: StudentsTableWidget(),
+                    ),
+                  ],
+                )
+              : const StudentsTableWidget(),
         ),
       ),
+    );
+      },
     );
   }
 }

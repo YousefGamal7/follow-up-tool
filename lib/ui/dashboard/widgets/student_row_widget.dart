@@ -97,6 +97,21 @@ DataRow buildStudentRow(
               },
             ),
           ),
+          const SizedBox(width: 8),
+          Container(
+            decoration: ModernStyles.glowingContainer(context, glowColor: Colors.red, opacity: 0.3, borderRadius: 8),
+            child: IconButton(
+              icon: const Icon(
+                LucideIcons.xCircle,
+                color: Colors.red,
+                size: 20,
+              ),
+              tooltip: 'Mark No Answer',
+              onPressed: () {
+                _showNoAnswerDialog(context, s, provider);
+              },
+            ),
+          ),
         ],
       ),
     ),
@@ -190,6 +205,66 @@ void _showExcuseDialog(BuildContext context, Student s, DashboardProvider provid
                   provider.excuseStudent(context, s, selectedAssignments);
                 },
                 child: const Text('Apply Excuse'),
+              ),
+            ],
+          );
+        }
+      );
+    },
+  );
+}
+
+void _showNoAnswerDialog(BuildContext context, Student s, DashboardProvider provider) {
+  List<String> selectedAssignments = [];
+  
+  showDialog(
+    context: context,
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: Text('Mark No Answer for ${s.name}'),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Select Assignments:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  Expanded(
+                    child: ListView(
+                      shrinkWrap: true,
+                      children: provider.assignments.map((assignment) {
+                        return CheckboxListTile(
+                          title: Text(assignment),
+                          value: selectedAssignments.contains(assignment),
+                          onChanged: (bool? value) {
+                            setState(() {
+                              if (value == true) {
+                                selectedAssignments.add(assignment);
+                              } else {
+                                selectedAssignments.remove(assignment);
+                              }
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+                onPressed: () {
+                  Navigator.pop(context);
+                  provider.noAnswerStudent(context, s, selectedAssignments);
+                },
+                child: const Text('Apply No Answer'),
               ),
             ],
           );

@@ -24,15 +24,9 @@ class DefaultFirebaseOptions {
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for android - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
         return macos;
       case TargetPlatform.windows:
@@ -67,4 +61,22 @@ class DefaultFirebaseOptions {
     storageBucket: 'follow-up-tool-7f866.firebasestorage.app',
     measurementId: 'G-GX81QRQRG8',
   );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyB00VgWm0hNRQh9N_jDpeqwDFNZoLsIfj8',
+    appId: '1:767097936113:ios:f3d1b9c7c39c8090b7b150',
+    messagingSenderId: '767097936113',
+    projectId: 'follow-up-tool-7f866',
+    storageBucket: 'follow-up-tool-7f866.firebasestorage.app',
+    iosBundleId: 'com.example.sendMessage',
+  );
+
+  static const FirebaseOptions android = FirebaseOptions(
+    apiKey: 'AIzaSyDotnAfTFY4MoodeIfmwNUX6IguM-ViSXc',
+    appId: '1:767097936113:android:42050e69af5e4546b7b150',
+    messagingSenderId: '767097936113',
+    projectId: 'follow-up-tool-7f866',
+    storageBucket: 'follow-up-tool-7f866.firebasestorage.app',
+  );
+
 }

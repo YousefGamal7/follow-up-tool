@@ -179,4 +179,23 @@ class ReportProvider extends ChangeNotifier {
     final firestoreSync = FirestoreSyncService();
     await firestoreSync.syncAttendanceRecord(record);
   }
+
+  Future<void> clearLocalCache(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('workshops_data');
+    await prefs.remove('attendance_data');
+    
+    _workshops.clear();
+    _attendanceRecords.clear();
+    notifyListeners();
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✅ Local cache for Workshops & Attendance cleared!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  }
 }

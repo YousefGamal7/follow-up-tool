@@ -448,6 +448,87 @@ class MultiSheetSyncService {
     }
   }
 
+  /// Adds 'No Answer' status without a Note to multiple assignments.
+  Future<void> addNoAnswerStatus({
+    required String email, 
+    required List<String> assignments, 
+    required String sheetName,
+  }) async {
+    final ss = await _followUpSpreadsheetFuture;
+    final sheet = ss.worksheetByTitle(sheetName);
+    if (sheet == null) throw Exception("Sheet '$sheetName' not found.");
+
+    final allRows = await sheet.values.allRows();
+    int headerRowIndex = -1;
+    for (int i = 0; i < allRows.length; i++) {
+      if (_isHeaderRow(allRows[i])) {
+        headerRowIndex = i;
+        break;
+      }
+    }
+
+    if (headerRowIndex == -1) throw Exception("Header row with 'Gmail' not found.");
+
+    final headers = allRows[headerRowIndex];
+    final lowerHeaders = headers.map((e) => e.toString().toLowerCase().trim()).toList();
+    
+    // First column is gmail
+    final emailCol = 0; 
+    
+    int rowIdx = -1;
+    for (int i = headerRowIndex + 1; i < allRows.length; i++) {
+      if (allRows[i].isNotEmpty && allRows[i][0].toString().toLowerCase().trim() == email.toLowerCase().trim()) {
+        rowIdx = i;
+        break;
+      }
+    }
+    
+    if (rowIdx == -1) {
+      throw Exception("Email '$email' not found in sheet.");
+    }
+
+    final api = await _sheetsApiFuture;
+    final requests = <sheets.Request>[];
+
+    for (String assignment in assignments) {
+      final colIdx = lowerHeaders.indexOf(assignment.toLowerCase().trim());
+      if (colIdx != -1) {
+        var cellData = sheets.CellData(
+          userEnteredValue: sheets.ExtendedValue(stringValue: 'No Answer'),
+          userEnteredFormat: sheets.CellFormat(
+            backgroundColor: sheets.Color(red: 0.91, green: 0.30, blue: 0.24),
+            textFormat: sheets.TextFormat(
+              foregroundColor: sheets.Color(red: 1, green: 1, blue: 1),
+              bold: true,
+            ),
+          )
+        );
+        requests.add(
+          sheets.Request(
+            updateCells: sheets.UpdateCellsRequest(
+              range: sheets.GridRange(
+                sheetId: sheet.id,
+                startRowIndex: rowIdx,
+                endRowIndex: rowIdx + 1,
+                startColumnIndex: colIdx,
+                endColumnIndex: colIdx + 1,
+              ),
+              rows: [sheets.RowData(values: [cellData])],
+              fields: "userEnteredValue,userEnteredFormat.backgroundColor,userEnteredFormat.textFormat",
+            ),
+          ),
+        );
+      } else {
+        print("Warning: Assignment column '$assignment' not found.");
+      }
+    }
+
+    if (requests.isNotEmpty) {
+      final batchRequest = sheets.BatchUpdateSpreadsheetRequest(requests: requests);
+      await api.spreadsheets.batchUpdate(batchRequest, _followUpSpreadsheetId);
+    }
+  }
+
   /// Marks as 'Followed up' and inserts the message as a Note.
   Future<void> markAsFollowedUp({
     required String email, 
