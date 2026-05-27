@@ -5,12 +5,18 @@ import 'firebase_options.dart';
 import 'providers/dashboard_provider.dart';
 import 'providers/theme_provider.dart';
 import 'ui/dashboard/dashboard_screen.dart';
+import 'services/notification_service.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  
+  // Initialize Background Notifications & System Tray for Windows
+  await NotificationService().init();
+  
   runApp(const FinalWhatsAppApp());
 }
 
