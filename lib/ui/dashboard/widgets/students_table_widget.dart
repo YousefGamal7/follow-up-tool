@@ -17,17 +17,17 @@ class StudentsTableWidget extends StatelessWidget {
         }
 
         List<DataColumn> tableColumns = [
-          const DataColumn(
-            label: Text('Name', style: TextStyle(fontWeight: FontWeight.bold)),
+          DataColumn(
+            label: Text('Name', style: TextStyle(fontWeight: FontWeight.bold, color: ModernStyles.getTextColor(context))),
           ),
-          const DataColumn(
-            label: Text('Missed', style: TextStyle(fontWeight: FontWeight.bold)),
+          DataColumn(
+            label: Text('Missed', style: TextStyle(fontWeight: FontWeight.bold, color: ModernStyles.getTextColor(context))),
           ),
-          const DataColumn(
-            label: Text('WhatsApp', style: TextStyle(fontWeight: FontWeight.bold)),
+          DataColumn(
+            label: Text('WhatsApp', style: TextStyle(fontWeight: FontWeight.bold, color: ModernStyles.getTextColor(context))),
           ),
-          const DataColumn(
-            label: Text('Report', style: TextStyle(fontWeight: FontWeight.bold)),
+          DataColumn(
+            label: Text('Report', style: TextStyle(fontWeight: FontWeight.bold, color: ModernStyles.getTextColor(context))),
           ),
         ];
 
@@ -36,43 +36,33 @@ class StudentsTableWidget extends StatelessWidget {
             DataColumn(
               label: Text(
                 assignment,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(fontWeight: FontWeight.bold, color: ModernStyles.getTextColor(context)),
               ),
             ),
           );
         }
 
         return Container(
-          margin: const EdgeInsets.only(top: 16, bottom: 16, right: 16),
-          child: ClipRRect(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
-                decoration: ModernStyles.glassPanel(context),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.vertical,
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: DataTable(
-                      headingRowColor: WidgetStateProperty.all(
-                        Theme.of(context).colorScheme.primary.withOpacity(0.1)
-                      ),
-                      dataRowColor: WidgetStateProperty.resolveWith<Color?>(
-                        (Set<WidgetState> states) {
-                          if (states.contains(WidgetState.hovered)) {
-                            return Theme.of(context).colorScheme.primary.withOpacity(0.05);
-                          }
-                          return null;
-                        },
-                      ),
-                      showCheckboxColumn: true,
-                      columns: tableColumns,
-                      rows: provider.filteredStudents
-                          .map((s) => buildStudentRow(context, s, provider))
-                          .toList(),
-                    ),
-                  ),
+          color: ModernStyles.getCardColor(context),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                headingRowColor: WidgetStateProperty.all(ModernStyles.getCardColor(context)),
+                dataRowColor: WidgetStateProperty.resolveWith<Color?>(
+                  (Set<WidgetState> states) {
+                    if (states.contains(WidgetState.hovered)) {
+                      return ModernStyles.blueRouteButton.withOpacity(0.05);
+                    }
+                    return null;
+                  },
                 ),
+                showCheckboxColumn: true,
+                columns: tableColumns,
+                rows: provider.filteredStudents
+                    .map((s) => buildStudentRow(context, s, provider))
+                    .toList(),
               ),
             ),
           ),

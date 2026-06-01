@@ -22,6 +22,7 @@ DataRow buildStudentRow(
             s.name,
             style: TextStyle(
               fontWeight: isWarning ? FontWeight.bold : FontWeight.normal,
+              color: ModernStyles.getTextColor(context),
             ),
           ),
           if (alreadySent)
@@ -37,7 +38,8 @@ DataRow buildStudentRow(
       Text(
         "${s.missedCount}",
         style: TextStyle(
-          color: isWarning ? Theme.of(context).colorScheme.error : null,
+          color: isWarning ? Colors.red : ModernStyles.getTextColor(context),
+          fontWeight: isWarning ? FontWeight.bold : FontWeight.normal,
         ),
       ),
     ),
@@ -46,8 +48,10 @@ DataRow buildStudentRow(
         onPressed: () => _showFollowUpDialog(context, s, provider),
         style: ElevatedButton.styleFrom(
           backgroundColor: alreadySent
-              ? Colors.green.withOpacity(0.2)
-              : (isWarning ? Colors.red : Colors.blue),
+              ? Colors.green
+              : ModernStyles.blueRouteButton,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
         ),
         child: const Text(
           'Message',
@@ -62,55 +66,44 @@ DataRow buildStudentRow(
       Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            decoration: ModernStyles.glowingContainer(context, glowColor: Colors.purple, opacity: 0.3, borderRadius: 8),
-            child: IconButton(
-              icon: const Icon(
-                LucideIcons.camera,
-                color: Colors.purple,
-                size: 20,
-              ),
-              tooltip: 'Generate visual student report',
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => ScreenshotDialog(
-                    student: s,
-                    assignments: provider.assignments,
-                  ),
-                );
-              },
+          IconButton(
+            icon:  Icon(
+              LucideIcons.camera,
+              color: ModernStyles.getTextColor(context),
+              size: 18,
             ),
+            tooltip: 'Generate visual student report',
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => ScreenshotDialog(
+                  student: s,
+                  assignments: provider.assignments,
+                ),
+              );
+            },
           ),
-          const SizedBox(width: 8),
-          Container(
-            decoration: ModernStyles.glowingContainer(context, glowColor: Colors.orange, opacity: 0.3, borderRadius: 8),
-            child: IconButton(
-              icon: const Icon(
-                LucideIcons.minusCircle,
-                color: Colors.orange,
-                size: 20,
-              ),
-              tooltip: 'Excuse from assignments',
-              onPressed: () {
-                _showExcuseDialog(context, s, provider);
-              },
+          IconButton(
+            icon:  Icon(
+              LucideIcons.minusCircle,
+              color: ModernStyles.getTextColor(context),
+              size: 18,
             ),
+            tooltip: 'Excuse from assignments',
+            onPressed: () {
+              _showExcuseDialog(context, s, provider);
+            },
           ),
-          const SizedBox(width: 8),
-          Container(
-            decoration: ModernStyles.glowingContainer(context, glowColor: Colors.red, opacity: 0.3, borderRadius: 8),
-            child: IconButton(
-              icon: const Icon(
-                LucideIcons.xCircle,
-                color: Colors.red,
-                size: 20,
-              ),
-              tooltip: 'Mark No Answer',
-              onPressed: () {
-                _showNoAnswerDialog(context, s, provider);
-              },
+          IconButton(
+            icon:  Icon(
+              LucideIcons.xCircle,
+              color: ModernStyles.getTextColor(context),
+              size: 18,
             ),
+            tooltip: 'Mark No Answer',
+            onPressed: () {
+              _showNoAnswerDialog(context, s, provider);
+            },
           ),
         ],
       ),
@@ -120,15 +113,37 @@ DataRow buildStudentRow(
   for (String assignment in provider.assignments) {
     String cellGrade = s.allGrades[assignment] ?? "";
     bool isMissing = cellGrade.isEmpty;
+    Color badgeColor;
+    if (isMissing) {
+      badgeColor = ModernStyles.blueRouteBadgeGrey;
+    } else {
+      double? val = double.tryParse(cellGrade);
+      if (val != null && val >= 9) {
+        badgeColor = ModernStyles.blueRouteBadgeCyan;
+      } else {
+        badgeColor = ModernStyles.blueRouteBadgeBlue;
+      }
+    }
+
     rowCells.add(
       DataCell(
-        Text(
-          cellGrade,
-          style: TextStyle(
-            color: isMissing
-                ? Colors.red
-                : (cellGrade.contains('late') ? Colors.orange : Colors.green),
-            fontWeight: FontWeight.bold,
+        Center(
+          child: Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              color: badgeColor,
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              cellGrade,
+              style: TextStyle(
+                color: isMissing ? Colors.transparent : Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
+            ),
           ),
         ),
       ),
@@ -137,7 +152,6 @@ DataRow buildStudentRow(
 
   return DataRow(
     selected: isSelected,
-    color: isWarning ? WidgetStateProperty.all(Theme.of(context).colorScheme.errorContainer.withOpacity(0.5)) : null,
     onSelectChanged: (v) {
       provider.toggleStudentSelection(s, v == true);
     },
@@ -154,7 +168,8 @@ void _showExcuseDialog(BuildContext context, Student s, DashboardProvider provid
       return StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
-            title: Text('Excuse ${s.name}'),
+            backgroundColor: ModernStyles.getCardColor(context),
+            title: Text('Excuse ${s.name}', style: TextStyle(color: ModernStyles.getTextColor(context))),
             content: SizedBox(
               width: double.maxFinite,
               child: Column(
@@ -223,7 +238,8 @@ void _showNoAnswerDialog(BuildContext context, Student s, DashboardProvider prov
       return StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
-            title: Text('Mark No Answer for ${s.name}'),
+            backgroundColor: ModernStyles.getCardColor(context),
+            title: Text('Mark No Answer for ${s.name}', style: TextStyle(color: ModernStyles.getTextColor(context))),
             content: SizedBox(
               width: double.maxFinite,
               child: Column(
@@ -285,7 +301,8 @@ void _showFollowUpDialog(BuildContext context, Student s, DashboardProvider prov
       return StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
-            title: Text('Message & Follow up ${s.name}'),
+            backgroundColor: ModernStyles.getCardColor(context),
+            title: Text('Follow Up: ${s.name}', style: TextStyle(color: ModernStyles.getTextColor(context))),
             content: SizedBox(
               width: double.maxFinite,
               child: Column(

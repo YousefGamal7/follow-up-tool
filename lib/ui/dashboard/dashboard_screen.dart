@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:send_message/theme/modern_styles.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../providers/theme_provider.dart';
 import 'widgets/filter_sidebar_widget.dart';
@@ -18,110 +19,108 @@ class DashboardScreen extends StatelessWidget {
       builder: (context, constraints) {
         final isDesktop = constraints.maxWidth >= 800;
         return Scaffold(
-          extendBodyBehindAppBar: true,
+          extendBodyBehindAppBar: false,
+          backgroundColor: ModernStyles.blueRouteBackground,
           drawer: isDesktop
               ? null
               : Drawer(
-                  backgroundColor: isDark
-                      ? const Color(0xFF1E1114).withOpacity(0.9)
-                      : const Color(0xFFFFF5F5).withOpacity(0.9),
+                  backgroundColor: ModernStyles.blueRouteSidebar,
                   child: const SafeArea(child: FilterSidebarWidget()),
                 ),
           appBar: AppBar(
-            title: Text(
-              isDesktop ? 'Smart Student Tracking System' : 'Tracking System',
-              overflow: TextOverflow.ellipsis,
+            backgroundColor: ModernStyles.blueRouteBackground,
+            elevation: 0,
+            title: Row(
+              children: [
+                Image.asset('assets/images/route.png', height: 48, errorBuilder: (context, error, stackTrace) => const Icon(Icons.error, color: Colors.white)),
+                const SizedBox(width: 12),
+                Text(
+                  isDesktop ? 'Blue Route Student Dashboard' : 'Dashboard',
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
-        actions: [
-          IconButton(
-            icon: const Icon(LucideIcons.barChart2),
-            tooltip: 'Advanced Report',
-            onPressed: () {
-              final dashboardProvider = context.read<DashboardProvider>();
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) {
-                    final groups = dashboardProvider.groups.where((g) => g != 'All').toList();
-                    return AdvancedTeamReportScreen(
-                      instructor: dashboardProvider.selectedInstructor ?? 'Yousef Gamal',
-                      groups: groups.isNotEmpty ? groups : ['Group 1 : Friday 10Am ( Dokki )'],
-                      initialGroup: dashboardProvider.selectedGroup == 'All' || dashboardProvider.selectedGroup == null
-                          ? (groups.isNotEmpty ? groups.first : 'Group 1 : Friday 10Am ( Dokki )')
-                          : dashboardProvider.selectedGroup!,
-                    );
-                  },
-                ),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(LucideIcons.calendar),
-            tooltip: 'Weekly Report',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const WeeklyReportScreen(),
-                ),
-              );
-            },
-          ),
-          Consumer<ThemeProvider>(
-            builder: (context, themeProvider, child) {
-              return IconButton(
-                icon: Icon(
-                  themeProvider.isDarkMode ? LucideIcons.sun : LucideIcons.moon,
-                ),
-                tooltip: 'Toggle Theme',
-                onPressed: themeProvider.toggleTheme,
-              );
-            },
-          ),
-          Consumer<DashboardProvider>(
-            builder: (context, provider, child) {
-              return IconButton(
-                onPressed: provider.clearSentHistory,
-                icon: const Icon(LucideIcons.refreshCcw),
-                tooltip: "Reset Sent History",
-              );
-            },
-          ),
-          Consumer<DashboardProvider>(
-            builder: (context, provider, child) {
-              return IconButton(
-                onPressed: () => provider.clearLocalCache(context),
-                icon: const Icon(LucideIcons.trash2),
-                tooltip: "Clear Local Cache",
-              );
-            },
-          ),
-        ],
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: isDark 
-              ? [const Color(0xFF1E1114), const Color(0xFF0F1115), const Color(0xFF181014)]
-              : [const Color(0xFFFFF5F5), const Color(0xFFF8F9FA), const Color(0xFFFEF0F0)],
-          ),
-        ),
-        child: SafeArea(
-          child: isDesktop
-              ? Row(
-                  children: const [
-                    SizedBox(width: 320, child: FilterSidebarWidget()),
-                    Expanded(
-                      child: StudentsTableWidget(),
+            iconTheme: const IconThemeData(color: Colors.white),
+            actions: [
+              IconButton(
+                icon: const Icon(LucideIcons.barChart2),
+                tooltip: 'Advanced Report',
+                onPressed: () {
+                  final dashboardProvider = context.read<DashboardProvider>();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        final groups = dashboardProvider.groups.where((g) => g != 'All').toList();
+                        return AdvancedTeamReportScreen(
+                          instructor: dashboardProvider.selectedInstructor ?? 'Yousef Gamal',
+                          groups: groups.isNotEmpty ? groups : ['Group 1 : Friday 10Am ( Dokki )'],
+                          initialGroup: dashboardProvider.selectedGroup == 'All' || dashboardProvider.selectedGroup == null
+                              ? (groups.isNotEmpty ? groups.first : 'Group 1 : Friday 10Am ( Dokki )')
+                              : dashboardProvider.selectedGroup!,
+                        );
+                      },
                     ),
-                  ],
-                )
-              : const StudentsTableWidget(),
-        ),
-      ),
-    );
+                  );
+                },
+              ),
+              IconButton(
+                icon: const Icon(LucideIcons.calendar),
+                tooltip: 'Weekly Report',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const WeeklyReportScreen(),
+                    ),
+                  );
+                },
+              ),
+              Consumer<DashboardProvider>(
+                builder: (context, provider, child) {
+                  return IconButton(
+                    onPressed: provider.clearSentHistory,
+                    icon: const Icon(LucideIcons.refreshCcw),
+                    tooltip: "Reset Sent History",
+                  );
+                },
+              ),
+              Consumer<DashboardProvider>(
+                builder: (context, provider, child) {
+                  return IconButton(
+                    onPressed: () => provider.clearLocalCache(context),
+                    icon: const Icon(LucideIcons.trash2),
+                    tooltip: "Clear Local Cache",
+                  );
+                },
+              ),
+              const SizedBox(width: 8),
+            ],
+          ),
+          body: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: ModernStyles.getCardColor(context),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: isDesktop
+                    ? Row(
+                        children: const [
+                          SizedBox(width: 300, child: FilterSidebarWidget()),
+                          Expanded(
+                            child: StudentsTableWidget(),
+                          ),
+                        ],
+                      )
+                    : const StudentsTableWidget(),
+              ),
+            ),
+          ),
+        );
       },
     );
   }
