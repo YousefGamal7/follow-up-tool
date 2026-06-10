@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../models/student.dart';
 import '../../../providers/dashboard_provider.dart';
 import '../../../theme/modern_styles.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'screenshot_dialog.dart';
 
 DataRow buildStudentRow(
@@ -45,7 +45,7 @@ DataRow buildStudentRow(
     ),
     DataCell(
       ElevatedButton(
-        onPressed: () => _showFollowUpDialog(context, s, provider),
+        onPressed: () => showFollowUpDialog(context, s, provider),
         style: ElevatedButton.styleFrom(
           backgroundColor: alreadySent
               ? Colors.green
@@ -91,7 +91,7 @@ DataRow buildStudentRow(
             ),
             tooltip: 'Excuse from assignments',
             onPressed: () {
-              _showExcuseDialog(context, s, provider);
+              showExcuseDialog(context, s, provider);
             },
           ),
           IconButton(
@@ -102,7 +102,7 @@ DataRow buildStudentRow(
             ),
             tooltip: 'Mark No Answer',
             onPressed: () {
-              _showNoAnswerDialog(context, s, provider);
+              showNoAnswerDialog(context, s, provider);
             },
           ),
         ],
@@ -159,7 +159,7 @@ DataRow buildStudentRow(
   );
 }
 
-void _showExcuseDialog(BuildContext context, Student s, DashboardProvider provider) {
+void showExcuseDialog(BuildContext context, Student s, DashboardProvider provider) {
   List<String> selectedAssignments = [];
   
   showDialog(
@@ -229,7 +229,7 @@ void _showExcuseDialog(BuildContext context, Student s, DashboardProvider provid
   );
 }
 
-void _showNoAnswerDialog(BuildContext context, Student s, DashboardProvider provider) {
+void showNoAnswerDialog(BuildContext context, Student s, DashboardProvider provider) {
   List<String> selectedAssignments = [];
   
   showDialog(
@@ -290,7 +290,7 @@ void _showNoAnswerDialog(BuildContext context, Student s, DashboardProvider prov
   );
 }
 
-void _showFollowUpDialog(BuildContext context, Student s, DashboardProvider provider) {
+void showFollowUpDialog(BuildContext context, Student s, DashboardProvider provider) {
   List<String> selectedAssignments = [];
   String generatedMessage = provider.generateMessage(s);
   TextEditingController messageController = TextEditingController(text: generatedMessage);

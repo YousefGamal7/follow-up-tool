@@ -355,12 +355,13 @@ class _WorkshopsTab extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      backgroundColor: ModernStyles.getCardColor(context),
+      backgroundColor: Colors.transparent,
       builder: (ctx) {
-        return Padding(
+        return Container(
+          decoration: BoxDecoration(
+            color: ModernStyles.getCardColor(context),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(ctx).viewInsets.bottom,
             left: 24,
@@ -372,45 +373,32 @@ class _WorkshopsTab extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  'Add New Workshop', 
-                  style: Theme.of(ctx).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: ModernStyles.getTextColor(ctx))
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Add New Workshop', 
+                      style: Theme.of(ctx).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: ModernStyles.getTextColor(ctx))
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.close, color: ModernStyles.getTextColor(ctx)),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 24),
-                TextField(
+                _buildModernTextField(
+                  context: context,
                   controller: topicCtrl,
-                    cursorColor: ModernStyles.getTextColor(context),
-
-                    decoration: InputDecoration(
-                    labelText: 'Topic',
-
-                    labelStyle: TextStyle(color: ModernStyles.getTextColor(context)),
-                    prefixIcon:  Icon(Icons.topic,color: ModernStyles.getTextColor(context),),
-                    disabledBorder:OutlineInputBorder(
-                        borderSide: BorderSide(color: ModernStyles.getTextColor(context)),
-                        borderRadius: BorderRadius.circular(12)),
-                    errorBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: ModernStyles.getTextColor(context)),
-                        borderRadius: BorderRadius.circular(12)),
-                    focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: ModernStyles.getTextColor(context)),
-                        borderRadius: BorderRadius.circular(12)),
-                    enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: ModernStyles.getTextColor(context)),
-                        borderRadius: BorderRadius.circular(12)),
-                    focusedErrorBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: ModernStyles.getTextColor(context)),
-                        borderRadius: BorderRadius.circular(12)),
-
-                    border: OutlineInputBorder(
-                        borderSide: BorderSide(color: ModernStyles.getTextColor(context)),
-                        borderRadius: BorderRadius.circular(12)),
-                  )
+                  labelText: 'Topic',
+                  icon: Icons.topic,
                 ),
                 const SizedBox(height: 16),
-                TextField(
-                    cursorColor: ModernStyles.getTextColor(context),
-                    controller: dateCtrl,
+                _buildModernTextField(
+                  context: context,
+                  controller: dateCtrl,
+                  labelText: 'Date (Select)',
+                  icon: Icons.calendar_today,
                   readOnly: true,
                   onTap: () async {
                     final picked = await showDatePicker(
@@ -423,37 +411,16 @@ class _WorkshopsTab extends StatelessWidget {
                       dateCtrl.text = '${picked.day}/${picked.month}/${picked.year}';
                     }
                   },
-                  decoration: InputDecoration(
-                    labelText: 'Date (Select)', 
-                    prefixIcon:  Icon(Icons.calendar_today,color: ModernStyles.getTextColor(context),),
-                    labelStyle: TextStyle(color: ModernStyles.getTextColor(context)),
-                    disabledBorder:OutlineInputBorder(
-                        borderSide: BorderSide(color: ModernStyles.getTextColor(context)),
-                        borderRadius: BorderRadius.circular(12)),
-                    errorBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: ModernStyles.getTextColor(context)),
-                        borderRadius: BorderRadius.circular(12)),
-                    focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: ModernStyles.getTextColor(context)),
-                        borderRadius: BorderRadius.circular(12)),
-                    enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: ModernStyles.getTextColor(context)),
-                        borderRadius: BorderRadius.circular(12)),
-                    focusedErrorBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: ModernStyles.getTextColor(context)),
-                        borderRadius: BorderRadius.circular(12)),
-
-                    border: OutlineInputBorder(
-                        borderSide: BorderSide(color: ModernStyles.getTextColor(context)),
-                        borderRadius: BorderRadius.circular(12)),
-                  )
                 ),
                 const SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(
-                      child: TextField(
-                        controller: startCtrl, 
+                      child: _buildModernTextField(
+                        context: context,
+                        controller: startCtrl,
+                        labelText: 'Start Time',
+                        icon: Icons.schedule,
                         readOnly: true,
                         onTap: () async {
                           final picked = await showTimePicker(
@@ -461,40 +428,17 @@ class _WorkshopsTab extends StatelessWidget {
                             initialTime: TimeOfDay.now(),
                           );
                           if (!ctx.mounted) return;
-                          if (picked != null) {
-                            startCtrl.text = picked.format(ctx);
-                          }
+                          if (picked != null) startCtrl.text = picked.format(ctx);
                         },
-                        decoration: InputDecoration(
-                          labelText: 'Start Time',
-                          labelStyle: TextStyle(color: ModernStyles.getTextColor(context)),
-                          disabledBorder:OutlineInputBorder(
-                              borderSide: BorderSide(color: ModernStyles.getTextColor(context)),
-                              borderRadius: BorderRadius.circular(12)),
-                          errorBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: ModernStyles.getTextColor(context)),
-                              borderRadius: BorderRadius.circular(12)),
-                          focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: ModernStyles.getTextColor(context)),
-                              borderRadius: BorderRadius.circular(12)),
-                          enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: ModernStyles.getTextColor(context)),
-                              borderRadius: BorderRadius.circular(12)),
-                          focusedErrorBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: ModernStyles.getTextColor(context)),
-                              borderRadius: BorderRadius.circular(12)),
-
-                          border: OutlineInputBorder(
-                              borderSide: BorderSide(color: ModernStyles.getTextColor(context)),
-                              borderRadius: BorderRadius.circular(12)),
-                          prefixIcon:  Icon(Icons.schedule,color: ModernStyles.getTextColor(context),),
-                        )
-                      )
+                      ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: TextField(
-                        controller: endCtrl, 
+                      child: _buildModernTextField(
+                        context: context,
+                        controller: endCtrl,
+                        labelText: 'End Time',
+                        icon: Icons.access_time,
                         readOnly: true,
                         onTap: () async {
                           final picked = await showTimePicker(
@@ -502,49 +446,45 @@ class _WorkshopsTab extends StatelessWidget {
                             initialTime: TimeOfDay.now(),
                           );
                           if (!ctx.mounted) return;
-                          if (picked != null) {
-                            endCtrl.text = picked.format(ctx);
-                          }
+                          if (picked != null) endCtrl.text = picked.format(ctx);
                         },
-                        decoration: InputDecoration(
-                          labelText: 'End Time', 
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        )
-                      )
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
-                TextField(
-                  controller: attendanceCtrl, 
-                  keyboardType: TextInputType.number, 
-                  decoration: InputDecoration(
-                    labelText: 'Attendance Count', 
-                    prefixIcon: const Icon(Icons.people),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  )
+                _buildModernTextField(
+                  context: context,
+                  controller: attendanceCtrl,
+                  labelText: 'Attendance Count',
+                  icon: Icons.people,
+                  keyboardType: TextInputType.number,
                 ),
                 const SizedBox(height: 32),
-                FilledButton(
-                  onPressed: () {
-                    final att = int.tryParse(attendanceCtrl.text) ?? 0;
-                    if (topicCtrl.text.isNotEmpty && dateCtrl.text.isNotEmpty) {
-                      final session = WorkshopSession(
-                        topic: topicCtrl.text,
-                        date: dateCtrl.text,
-                        attendance: att,
-                        startTime: startCtrl.text,
-                        endTime: endCtrl.text,
-                      );
-                      provider.addWorkshop(session);
-                      Navigator.pop(ctx);
-                    }
-                  },
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                Container(
+                  decoration: ModernStyles.glowingContainer(context, opacity: 0.3, borderRadius: 12),
+                  child: FilledButton(
+                    onPressed: () {
+                      final att = int.tryParse(attendanceCtrl.text) ?? 0;
+                      if (topicCtrl.text.isNotEmpty && dateCtrl.text.isNotEmpty) {
+                        final session = WorkshopSession(
+                          topic: topicCtrl.text,
+                          date: dateCtrl.text,
+                          attendance: att,
+                          startTime: startCtrl.text,
+                          endTime: endCtrl.text,
+                        );
+                        provider.addWorkshop(session);
+                        Navigator.pop(ctx);
+                      }
+                    },
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: const Text('Save Workshop', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
                   ),
-                  child: const Text('Save Workshop', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
                 const SizedBox(height: 24),
               ],
@@ -653,11 +593,13 @@ class _AttendanceTab extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (ctx) {
-        return Padding(
+        return Container(
+          decoration: BoxDecoration(
+            color: ModernStyles.getCardColor(context),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(ctx).viewInsets.bottom,
             left: 24,
@@ -669,22 +611,32 @@ class _AttendanceTab extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  'Add Branch Attendance', 
-                  style: Theme.of(ctx).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: ModernStyles.getTextColor(ctx))
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Add Branch Attendance', 
+                      style: Theme.of(ctx).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: ModernStyles.getTextColor(ctx))
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.close, color: ModernStyles.getTextColor(ctx)),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 24),
-                TextField(
-                  controller: weekCtrl, 
-                  decoration: InputDecoration(
-                    labelText: 'Week (e.g. Week 1)', 
-                    prefixIcon: const Icon(Icons.view_week),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  )
+                _buildModernTextField(
+                  context: context,
+                  controller: weekCtrl,
+                  labelText: 'Week (e.g. Week 1)',
+                  icon: Icons.view_week,
                 ),
                 const SizedBox(height: 16),
-                TextField(
-                  controller: dateCtrl, 
+                _buildModernTextField(
+                  context: context,
+                  controller: dateCtrl,
+                  labelText: 'Date (Select)',
+                  icon: Icons.calendar_today,
                   readOnly: true,
                   onTap: () async {
                     final picked = await showDatePicker(
@@ -699,36 +651,30 @@ class _AttendanceTab extends StatelessWidget {
                       dayCtrl.text = days[picked.weekday - 1];
                     }
                   },
-                  decoration: InputDecoration(
-                    labelText: 'Date (Select)', 
-                    prefixIcon: const Icon(Icons.calendar_today),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  )
                 ),
                 const SizedBox(height: 16),
-                TextField(
-                  controller: dayCtrl, 
-                  decoration: InputDecoration(
-                    labelText: 'Day (e.g. Friday)', 
-                    prefixIcon: const Icon(Icons.today),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  )
+                _buildModernTextField(
+                  context: context,
+                  controller: dayCtrl,
+                  labelText: 'Day (e.g. Friday)',
+                  icon: Icons.today,
                 ),
                 const SizedBox(height: 16),
-                TextField(
-                  controller: branchNameCtrl, 
-                  decoration: InputDecoration(
-                    labelText: 'Branch Name', 
-                    prefixIcon: const Icon(Icons.location_city),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  )
+                _buildModernTextField(
+                  context: context,
+                  controller: branchNameCtrl,
+                  labelText: 'Branch Name',
+                  icon: Icons.location_city,
                 ),
                 const SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(
-                      child: TextField(
-                        controller: arriveCtrl, 
+                      child: _buildModernTextField(
+                        context: context,
+                        controller: arriveCtrl,
+                        labelText: 'Arrive Time',
+                        icon: Icons.access_time,
                         readOnly: true,
                         onTap: () async {
                           final picked = await showTimePicker(
@@ -736,21 +682,17 @@ class _AttendanceTab extends StatelessWidget {
                             initialTime: TimeOfDay.now(),
                           );
                           if (!ctx.mounted) return;
-                          if (picked != null) {
-                            arriveCtrl.text = picked.format(ctx);
-                          }
+                          if (picked != null) arriveCtrl.text = picked.format(ctx);
                         },
-                        decoration: InputDecoration(
-                          labelText: 'Arrive Time', 
-                          prefixIcon: const Icon(Icons.access_time),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        )
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: TextField(
-                        controller: endCtrl, 
+                      child: _buildModernTextField(
+                        context: context,
+                        controller: endCtrl,
+                        labelText: 'End Time',
+                        icon: Icons.access_time_filled,
                         readOnly: true,
                         onTap: () async {
                           final picked = await showTimePicker(
@@ -758,40 +700,37 @@ class _AttendanceTab extends StatelessWidget {
                             initialTime: TimeOfDay.now(),
                           );
                           if (!ctx.mounted) return;
-                          if (picked != null) {
-                            endCtrl.text = picked.format(ctx);
-                          }
+                          if (picked != null) endCtrl.text = picked.format(ctx);
                         },
-                        decoration: InputDecoration(
-                          labelText: 'End Time', 
-                          prefixIcon: const Icon(Icons.access_time_filled),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        )
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 32),
-                FilledButton(
-                  onPressed: () {
-                    if (weekCtrl.text.isNotEmpty && dateCtrl.text.isNotEmpty) {
-                      final record = BranchAttendance(
-                        week: weekCtrl.text,
-                        date: dateCtrl.text,
-                        day: dayCtrl.text,
-                        arriveTime: arriveCtrl.text,
-                        endTime: endCtrl.text,
-                        branchName: branchNameCtrl.text,
-                      );
-                      provider.addAttendance(record);
-                      Navigator.pop(ctx);
-                    }
-                  },
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                Container(
+                  decoration: ModernStyles.glowingContainer(context, opacity: 0.3, borderRadius: 12),
+                  child: FilledButton(
+                    onPressed: () {
+                      if (weekCtrl.text.isNotEmpty && dateCtrl.text.isNotEmpty) {
+                        final record = BranchAttendance(
+                          week: weekCtrl.text,
+                          date: dateCtrl.text,
+                          day: dayCtrl.text,
+                          arriveTime: arriveCtrl.text,
+                          endTime: endCtrl.text,
+                          branchName: branchNameCtrl.text,
+                        );
+                        provider.addAttendance(record);
+                        Navigator.pop(ctx);
+                      }
+                    },
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: const Text('Save Attendance', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
                   ),
-                  child: const Text('Save Attendance', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
                 const SizedBox(height: 24),
               ],
@@ -801,4 +740,39 @@ class _AttendanceTab extends StatelessWidget {
       },
     );
   }
+}
+
+Widget _buildModernTextField({
+  required BuildContext context,
+  required TextEditingController controller,
+  required String labelText,
+  required IconData icon,
+  bool readOnly = false,
+  VoidCallback? onTap,
+  TextInputType? keyboardType,
+}) {
+  return TextField(
+    controller: controller,
+    readOnly: readOnly,
+    onTap: onTap,
+    keyboardType: keyboardType,
+    cursorColor: ModernStyles.getTextColor(context),
+    decoration: InputDecoration(
+      labelText: labelText,
+      labelStyle: TextStyle(color: ModernStyles.getTextColor(context)),
+      prefixIcon: Icon(icon, color: ModernStyles.getTextColor(context)),
+      filled: true,
+      fillColor: Theme.of(context).brightness == Brightness.dark 
+          ? Colors.white.withOpacity(0.05) 
+          : Colors.grey.withOpacity(0.1),
+      enabledBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: ModernStyles.blueRouteDivider.withOpacity(0.5)),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderSide: const BorderSide(color: ModernStyles.blueRouteButton, width: 2),
+        borderRadius: BorderRadius.circular(16),
+      ),
+    ),
+  );
 }

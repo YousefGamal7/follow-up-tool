@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:send_message/theme/modern_styles.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../providers/theme_provider.dart';
 import 'widgets/filter_sidebar_widget.dart';
 import 'widgets/students_table_widget.dart';
+import 'widgets/student_search_bottom_sheet.dart';
 import 'weekly_report_screen.dart';
 import 'advanced_team_report_screen.dart';
 
@@ -43,6 +44,18 @@ class DashboardScreen extends StatelessWidget {
             ),
             iconTheme: const IconThemeData(color: Colors.white),
             actions: [
+              IconButton(
+                icon: const Icon(LucideIcons.search),
+                tooltip: 'Search Student',
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) => const StudentSearchBottomSheet(),
+                  );
+                },
+              ),
               IconButton(
                 icon: const Icon(LucideIcons.barChart2),
                 tooltip: 'Advanced Report',
