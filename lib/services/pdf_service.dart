@@ -5,11 +5,11 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:file_picker/file_picker.dart';
 import '../models/report_models.dart';
 
 class PdfService {
-  static Future<void> generateAndShareTeamReport({
+  static Future<String?> generateAndShareTeamReport({
     required Map<String, List<ReportAssignment>> allGroupAssignments,
     required List<WorkshopSession> workshops,
     required List<BranchAttendance> attendance,
@@ -71,17 +71,34 @@ class PdfService {
 
     if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
       try {
-        final docsDir = await getApplicationDocumentsDirectory();
-        final filePath = '${docsDir.path}${Platform.pathSeparator}$fileName';
-        final file = File(filePath);
+        final String? outputFile = await FilePicker.platform.saveFile(
+          dialogTitle: 'Save Team Report',
+          fileName: fileName,
+          type: FileType.custom,
+          allowedExtensions: ['pdf'],
+        );
+
+        if (outputFile == null) {
+          return null; // User cancelled the dialog
+        }
+
+        var finalPath = outputFile;
+        if (!finalPath.toLowerCase().endsWith('.pdf')) {
+          finalPath += '.pdf';
+        }
+
+        final file = File(finalPath);
         await file.writeAsBytes(bytes);
-        // On desktop, saving directly to Documents without a prompt is preferred by the user.
+        return finalPath;
       } catch (e) {
+        print('Error saving PDF: $e');
         // Fallback to share/save dialog
         await Printing.sharePdf(bytes: bytes, filename: fileName);
+        return 'shared';
       }
     } else {
       await Printing.sharePdf(bytes: bytes, filename: fileName);
+      return 'shared';
     }
   }
 

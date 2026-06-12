@@ -67,13 +67,38 @@ class _AdvancedTeamReportView extends StatelessWidget {
                 return IconButton(
                   icon: const Icon(Icons.picture_as_pdf),
                   tooltip: 'Generate & Share PDF',
-                  onPressed: () {
+                  onPressed: () async {
                     final provider = context.read<ReportProvider>();
-                    PdfService.generateAndShareTeamReport(
+                    final resultPath = await PdfService.generateAndShareTeamReport(
                       allGroupAssignments: provider.allActiveAssignments,
                       workshops: provider.workshops,
                       attendance: provider.attendanceRecords,
                     );
+
+                    if (context.mounted) {
+                      if (resultPath == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('PDF generation or save cancelled'),
+                            backgroundColor: Colors.orange,
+                          ),
+                        );
+                      } else if (resultPath == 'shared') {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('PDF shared successfully'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('PDF saved successfully to: $resultPath'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
+                    }
                   },
                 );
               }
