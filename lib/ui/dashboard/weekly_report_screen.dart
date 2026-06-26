@@ -1,3 +1,4 @@
+import 'package:adaptive_platform_ui/adaptive_platform_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/assignment.dart';
@@ -22,10 +23,9 @@ class _WeeklyReportView extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<WeeklyReportProvider>();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Weekly Assignments Report'),
-        centerTitle: true,
+    return AdaptiveScaffold(
+      appBar: AdaptiveAppBar(
+        title: 'Weekly Assignments Report',
       ),
       body: Column(
         children: [
@@ -98,14 +98,10 @@ class _AssignmentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.only(bottom: 16.0),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16.0),
-      ),
-      child: Padding(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: AdaptiveCard(
+        color: theme.colorScheme.surface,
         padding: const EdgeInsets.all(16.0),
         child: Row(
           children: [

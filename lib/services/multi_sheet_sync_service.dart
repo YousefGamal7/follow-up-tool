@@ -159,7 +159,7 @@ class MultiSheetSyncService {
     for (int j = 0; j < followHeaders.length; j++) {
       final h = followHeaders[j].toString().trim();
       final hl = h.toLowerCase();
-      if (h.isEmpty || hl == 'email' || hl == 'gmail' || hl == 'name' || hl == 'number' || hl == 'whatsapp') continue;
+      if (h.isEmpty || hl == 'email' || hl == 'gmail' || hl == 'name' || hl == 'number') continue;
       orderedAssignNames.add(h);
       orderedFollowColIdx.add(j);
     }
@@ -170,6 +170,13 @@ class MultiSheetSyncService {
       if (followRows[i].isEmpty) continue;
       final email = followRows[i][0].toString().trim().toLowerCase();
       if (email.isNotEmpty) emailToFollowRow[email] = i;
+    }
+
+    // Build: assignment name → column index in the Grades sheet (by header name)
+    final Map<String, int> gradesColByName = {};
+    for (int j = firstTaskCol; j < gradesHeaderRow.length; j++) {
+      final h = gradesHeaderRow[j].toString().trim();
+      if (h.isNotEmpty) gradesColByName[h.toLowerCase()] = j;
     }
 
     // ── Step 3: Build batch update requests ────────────────────────────────
@@ -186,10 +193,12 @@ class MultiSheetSyncService {
       final followRowIdx = emailToFollowRow[email];
       if (followRowIdx == null) continue; // not in Follow-up sheet
 
-      // Match assignment values by position
-      // Grades cols starting at firstTaskCol map to orderedAssignNames[0], [1], [2]...
+      // Match assignment values by NAME instead of by position
       for (int k = 0; k < orderedAssignNames.length; k++) {
-        final gradesColIdx = firstTaskCol + k;
+        final assignName = orderedAssignNames[k];
+        final gradesColIdx = gradesColByName[assignName.toLowerCase()];
+        if (gradesColIdx == null) continue; // assignment not found in Grades sheet
+        
         final followColIdx = orderedFollowColIdx[k];
         final gradeVal = gradesColIdx < row.length ? row[gradesColIdx].toString().trim() : '';
         final status = gradeVal.isNotEmpty ? 'Submitted' : 'No Answer';
@@ -266,7 +275,19 @@ class MultiSheetSyncService {
     if (emailCol == -1) emailCol = lowerHeaders.indexOf('mail');
     if (emailCol == -1) emailCol = 0; // Fallback to 0 only if not found
 
-    final assignCol = lowerHeaders.indexOf(assignmentCol.toLowerCase().trim());
+    // Find where task columns start (after 'submission') to avoid matching
+    // metadata columns (e.g. a 'Whatsapp' phone number column before assignments)
+    int submissionIdx = lowerHeaders.indexOf('submission');
+    int taskStartCol = (submissionIdx != -1) ? submissionIdx + 1 : 4;
+
+    // Search for the assignment column ONLY within the task columns area
+    int assignCol = -1;
+    for (int j = taskStartCol; j < lowerHeaders.length; j++) {
+      if (lowerHeaders[j] == assignmentCol.toLowerCase().trim()) {
+        assignCol = j;
+        break;
+      }
+    }
 
     if (assignCol == -1) {
       throw Exception("Required column '$assignmentCol' not found in $sheetName sheet.");
@@ -674,7 +695,19 @@ class MultiSheetSyncService {
       final lowercaseHeaders = headers.map((h) => h.toString().toLowerCase().trim()).toList();
 
       final int mailColIndex = 0; // Since Gmail is column 0
-      final int taskListIndex = lowercaseHeaders.indexOf(taskName.toLowerCase().trim());
+      
+      // Find where task columns start (after 'submission') to avoid matching
+      // metadata columns (e.g. a 'Whatsapp' phone number column before assignments)
+      int submissionIdx = lowercaseHeaders.indexOf('submission');
+      int taskStartCol = (submissionIdx != -1) ? submissionIdx + 1 : 4;
+      
+      int taskListIndex = -1;
+      for (int j = taskStartCol; j < lowercaseHeaders.length; j++) {
+        if (lowercaseHeaders[j] == taskName.toLowerCase().trim()) {
+          taskListIndex = j;
+          break;
+        }
+      }
       if (taskListIndex == -1) throw Exception("Target column '$taskName' could not be found.");
       final int taskColIndex = taskListIndex;
 

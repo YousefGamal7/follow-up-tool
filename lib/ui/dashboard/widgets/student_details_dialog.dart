@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:adaptive_platform_ui/adaptive_platform_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../models/student.dart';
@@ -135,38 +136,34 @@ class StudentDetailsDialog extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    TextButton.icon(
-                      icon: Icon(LucideIcons.xCircle, color: ModernStyles.getTextColor(context), size: 18),
-                      label: Text('No Answer', style: TextStyle(color: ModernStyles.getTextColor(context))),
+                    AdaptiveButton(
+                      label: 'No Answer',
                       onPressed: () {
                         final provider = context.read<DashboardProvider>();
                         Navigator.pop(context); // Close the details dialog
                         showNoAnswerDialog(context, student, provider);
                       },
+                      style: AdaptiveButtonStyle.tinted,
                     ),
                     const SizedBox(width: 8),
-                    TextButton.icon(
-                      icon: Icon(LucideIcons.minusCircle, color: ModernStyles.getTextColor(context), size: 18),
-                      label: Text('Excuse', style: TextStyle(color: ModernStyles.getTextColor(context))),
+                    AdaptiveButton(
+                      label: 'Excuse',
                       onPressed: () {
                         final provider = context.read<DashboardProvider>();
                         Navigator.pop(context); // Close the details dialog
                         showExcuseDialog(context, student, provider);
                       },
+                      style: AdaptiveButtonStyle.tinted,
                     ),
                     const SizedBox(width: 8),
-                    ElevatedButton.icon(
-                      icon: const Icon(LucideIcons.messageCircle, size: 18, color: Colors.white),
-                      label: const Text('Message', style: TextStyle(color: Colors.white)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: ModernStyles.blueRouteButton,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
+                    AdaptiveButton(
+                      label: 'Message',
                       onPressed: () {
                         final provider = context.read<DashboardProvider>();
                         Navigator.pop(context); // Close the details dialog
                         showFollowUpDialog(context, student, provider);
                       },
+                      style: AdaptiveButtonStyle.filled,
                     ),
                   ],
                 ),

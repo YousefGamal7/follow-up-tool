@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:adaptive_platform_ui/adaptive_platform_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -26,10 +27,9 @@ class FinalWhatsAppApp extends StatelessWidget {
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
-          return MaterialApp(
+          return AdaptiveApp(
             title: 'Smart Student Tracking System',
-            debugShowCheckedModeBanner: false,
-            theme: ThemeData(
+            materialLightTheme: ThemeData(
               colorScheme: ColorScheme.fromSeed(
                 seedColor: const Color(0xFFA31D22),
                 secondary: const Color(0xFFC89C4C),
@@ -44,7 +44,7 @@ class FinalWhatsAppApp extends StatelessWidget {
                 titleTextStyle: TextStyle(color: Colors.black87, fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ),
-            darkTheme: ThemeData(
+            materialDarkTheme: ThemeData(
               colorScheme: ColorScheme.fromSeed(
                 seedColor: const Color(0xFFA31D22),
                 secondary: const Color(0xFFC89C4C),

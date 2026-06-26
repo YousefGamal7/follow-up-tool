@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:adaptive_platform_ui/adaptive_platform_ui.dart';
 import '../../../providers/dashboard_provider.dart';
 import '../../../theme/modern_styles.dart';
 import 'history_log_widget.dart';
@@ -59,8 +60,15 @@ class FilterSidebarWidget extends StatelessWidget {
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
-                        color: Colors.white,
                       ),
+                    ),
+                    const SizedBox(height: 10),
+                    AdaptiveSegmentedControl(
+                      labels: const ['Male', 'Female'],
+                      selectedIndex: provider.isMaleTemplate ? 0 : 1,
+                      onValueChanged: (index) {
+                        provider.toggleTemplateGender(index == 0);
+                      },
                     ),
                     const SizedBox(height: 10),
                     if (provider.savedTemplates.isNotEmpty)
@@ -95,42 +103,25 @@ class FilterSidebarWidget extends StatelessWidget {
                         ),
                       ),
                     const SizedBox(height: 10),
-                    TextField(
+                    AdaptiveTextField(
                       controller: provider.templateController,
                       maxLines: 4,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
-                      decoration: InputDecoration(
-                        hintText: "Hey [Name], you missed [Missed] tasks",
-                        hintStyle: const TextStyle(color: Colors.white54),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Colors.white24),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Colors.white24),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Colors.white),
-                        ),
-                        filled: true,
-                        fillColor: ModernStyles.blueRouteBackground,
-                      ),
+                      minLines: 4,
+                      placeholder: "Hey [Name], you missed [Missed] tasks",
+                      keyboardType: TextInputType.multiline,
                     ),
                     const SizedBox(height: 10),
-                    ElevatedButton.icon(
+                    AdaptiveButton.child(
                       onPressed: () => provider.saveTemplate(context),
-                      icon: const Icon(LucideIcons.save, size: 16),
-                      label: const Text('Save Template'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        foregroundColor: Colors.white,
-                        shadowColor: Colors.transparent,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          side: const BorderSide(color: Colors.white54),
-                        ),
+                      style: AdaptiveButtonStyle.tinted,
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(LucideIcons.save, size: 16),
+                          SizedBox(width: 8),
+                          Text('Save Template'),
+                        ],
                       ),
                     ),
                     const Divider(height: 30, color: Colors.white24, thickness: 1),
@@ -150,20 +141,21 @@ class FilterSidebarWidget extends StatelessWidget {
                       provider.selectedDynamicTask,
                       provider.setDynamicTask,
                     ),
-                    ElevatedButton.icon(
+                    AdaptiveButton.child(
                       onPressed: provider.isLoading ? null : () {
                         if (provider.selectedDynamicTask != null) {
                           provider.syncGradesToStatus(provider.selectedDynamicTask!);
                         }
                       },
-                      icon: const Icon(LucideIcons.checkCheck, size: 16),
-                      label: const Text('Sync + Mark Submitted'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: ModernStyles.blueRouteButton,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                      style: AdaptiveButtonStyle.filled,
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(LucideIcons.checkCheck, size: 16),
+                          SizedBox(width: 8),
+                          Text('Sync + Mark Submitted'),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 20),

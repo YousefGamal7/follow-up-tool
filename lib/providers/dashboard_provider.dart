@@ -16,7 +16,7 @@ class DashboardProvider extends ChangeNotifier {
 
   List<String> dynamicTasks = [
     'Assignment 1', 'Assignment 2', 'Assignment 3', 
-    'OOP1', 'OOP2', 'Watsapp', 'Facebook', 'Space', 
+    'OOP1', 'OOP2', 'Whatsapp', 'Facebook', 'Space', 
     'Contacts', 'Islami', 'Evently', 'News', 'Movie'
   ];
   String? selectedDynamicTask = 'Assignment 1';
@@ -44,7 +44,12 @@ class DashboardProvider extends ChangeNotifier {
   List<String> sentPhones = [];
   bool isLoading = false;
 
-  List<String> savedTemplates = [];
+  List<String> _savedMaleTemplates = [];
+  List<String> _savedFemaleTemplates = [];
+  bool isMaleTemplate = true;
+
+  List<String> get savedTemplates => isMaleTemplate ? _savedMaleTemplates : _savedFemaleTemplates;
+
   String? selectedTemplate;
   final TextEditingController templateController = TextEditingController();
   final TextEditingController excuseReasonController = TextEditingController();
@@ -88,7 +93,15 @@ class DashboardProvider extends ChangeNotifier {
 
   Future<void> _loadTemplates() async {
     final prefs = await SharedPreferences.getInstance();
-    savedTemplates = prefs.getStringList('wa_templates') ?? [];
+    _savedMaleTemplates = prefs.getStringList('wa_templates_male') ?? [];
+    _savedFemaleTemplates = prefs.getStringList('wa_templates_female') ?? [];
+    notifyListeners();
+  }
+
+  void toggleTemplateGender(bool isMale) {
+    isMaleTemplate = isMale;
+    selectedTemplate = null;
+    templateController.text = '';
     notifyListeners();
   }
 
@@ -96,9 +109,13 @@ class DashboardProvider extends ChangeNotifier {
     final text = templateController.text.trim();
     if (text.isEmpty) return;
     final prefs = await SharedPreferences.getInstance();
-    if (!savedTemplates.contains(text)) {
-      savedTemplates.add(text);
-      await prefs.setStringList('wa_templates', savedTemplates);
+    
+    final list = isMaleTemplate ? _savedMaleTemplates : _savedFemaleTemplates;
+    final key = isMaleTemplate ? 'wa_templates_male' : 'wa_templates_female';
+
+    if (!list.contains(text)) {
+      list.add(text);
+      await prefs.setStringList(key, list);
       selectedTemplate = text;
       _addLog("Template saved.");
       notifyListeners();
@@ -460,7 +477,8 @@ class DashboardProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
     sentPhones.clear();
-    savedTemplates.clear();
+    _savedMaleTemplates.clear();
+    _savedFemaleTemplates.clear();
     selectedTemplate = null;
     _addLog("Local cache cleared.");
     notifyListeners();

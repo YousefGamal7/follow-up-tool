@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'dart:typed_data';
+import 'package:adaptive_platform_ui/adaptive_platform_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:file_picker/file_picker.dart';
@@ -100,10 +101,6 @@ class _ScreenshotDialogState extends State<ScreenshotDialog> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              "You can now save this directly to your computer.",
-              style: TextStyle(color: Colors.grey),
-            ),
             const SizedBox(height: 10),
             Flexible(
               child: SingleChildScrollView(
@@ -113,18 +110,15 @@ class _ScreenshotDialogState extends State<ScreenshotDialog> {
           ],
         ),
         actions: [
-          TextButton(
+          AdaptiveButton(
+            label: "Close",
+            style: AdaptiveButtonStyle.tinted,
             onPressed: () => Navigator.pop(context),
-            child: const Text("Close"),
           ),
-          ElevatedButton.icon(
+          AdaptiveButton(
+            label: "Save to PC",
+            style: AdaptiveButtonStyle.filled,
             onPressed: _saveImageDirectly,
-            icon: const Icon(Icons.download),
-            label: const Text("Save to PC"),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              foregroundColor: Theme.of(context).colorScheme.onPrimary,
-            ),
           ),
         ],
       );
@@ -216,12 +210,16 @@ class _ScreenshotDialogState extends State<ScreenshotDialog> {
         ),
       ),
       actions: [
-        if (_isCapturing) const CircularProgressIndicator(),
+        AdaptiveButton(
+          label: "Close",
+          style: AdaptiveButtonStyle.tinted,
+          onPressed: () => Navigator.pop(context),
+        ),
         if (!_isCapturing)
-          ElevatedButton.icon(
+          AdaptiveButton(
+            label: "Capture Image",
+            style: AdaptiveButtonStyle.filled,
             onPressed: _capture,
-            icon: const Icon(Icons.camera),
-            label: const Text("Capture Image"),
           ),
       ],
     );

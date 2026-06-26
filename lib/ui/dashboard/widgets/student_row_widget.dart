@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../models/student.dart';
 import '../../../providers/dashboard_provider.dart';
 import '../../../theme/modern_styles.dart';
+import 'package:adaptive_platform_ui/adaptive_platform_ui.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'screenshot_dialog.dart';
 
@@ -44,22 +45,10 @@ DataRow buildStudentRow(
       ),
     ),
     DataCell(
-      ElevatedButton(
+      AdaptiveButton(
         onPressed: () => showFollowUpDialog(context, s, provider),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: alreadySent
-              ? Colors.green
-              : ModernStyles.blueRouteButton,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-        ),
-        child: const Text(
-          'Message',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 11,
-          ),
-        ),
+        style: alreadySent ? AdaptiveButtonStyle.filled : AdaptiveButtonStyle.tinted,
+        label: 'Message',
       ),
     ),
     DataCell(
@@ -168,19 +157,15 @@ void showExcuseDialog(BuildContext context, Student s, DashboardProvider provide
       return StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
-            backgroundColor: ModernStyles.getCardColor(context),
-            title: Text('Excuse ${s.name}', style: TextStyle(color: ModernStyles.getTextColor(context))),
+            title: Text('Excuse ${s.name}'),
             content: SizedBox(
               width: double.maxFinite,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  TextField(
+                  AdaptiveTextField(
                     controller: provider.excuseReasonController,
-                    decoration: const InputDecoration(
-                      labelText: 'Reason for excuse',
-                      border: OutlineInputBorder(),
-                    ),
+                    placeholder: 'Reason for excuse',
                     maxLines: 2,
                   ),
                   const SizedBox(height: 10),
@@ -189,15 +174,26 @@ void showExcuseDialog(BuildContext context, Student s, DashboardProvider provide
                     child: ListView(
                       shrinkWrap: true,
                       children: provider.assignments.map((assignment) {
-                        return CheckboxListTile(
+                        return AdaptiveListTile(
                           title: Text(assignment),
-                          value: selectedAssignments.contains(assignment),
-                          onChanged: (bool? value) {
+                          trailing: AdaptiveCheckbox(
+                            value: selectedAssignments.contains(assignment),
+                            onChanged: (bool? value) {
+                              setState(() {
+                                if (value == true) {
+                                  selectedAssignments.add(assignment);
+                                } else {
+                                  selectedAssignments.remove(assignment);
+                                }
+                              });
+                            },
+                          ),
+                          onTap: () {
                             setState(() {
-                              if (value == true) {
-                                selectedAssignments.add(assignment);
-                              } else {
+                              if (selectedAssignments.contains(assignment)) {
                                 selectedAssignments.remove(assignment);
+                              } else {
+                                selectedAssignments.add(assignment);
                               }
                             });
                           },
@@ -209,17 +205,18 @@ void showExcuseDialog(BuildContext context, Student s, DashboardProvider provide
               ),
             ),
             actions: [
-              TextButton(
+              AdaptiveButton(
+                label: 'Cancel',
+                style: AdaptiveButtonStyle.tinted,
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
               ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, foregroundColor: Colors.white),
+              AdaptiveButton(
+                label: 'Apply Excuse',
+                style: AdaptiveButtonStyle.filled,
                 onPressed: () {
                   Navigator.pop(context);
                   provider.excuseStudent(context, s, selectedAssignments);
                 },
-                child: const Text('Apply Excuse'),
               ),
             ],
           );
@@ -238,8 +235,7 @@ void showNoAnswerDialog(BuildContext context, Student s, DashboardProvider provi
       return StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
-            backgroundColor: ModernStyles.getCardColor(context),
-            title: Text('Mark No Answer for ${s.name}', style: TextStyle(color: ModernStyles.getTextColor(context))),
+            title: Text('Mark No Answer for ${s.name}'),
             content: SizedBox(
               width: double.maxFinite,
               child: Column(
@@ -250,15 +246,26 @@ void showNoAnswerDialog(BuildContext context, Student s, DashboardProvider provi
                     child: ListView(
                       shrinkWrap: true,
                       children: provider.assignments.map((assignment) {
-                        return CheckboxListTile(
+                        return AdaptiveListTile(
                           title: Text(assignment),
-                          value: selectedAssignments.contains(assignment),
-                          onChanged: (bool? value) {
+                          trailing: AdaptiveCheckbox(
+                            value: selectedAssignments.contains(assignment),
+                            onChanged: (bool? value) {
+                              setState(() {
+                                if (value == true) {
+                                  selectedAssignments.add(assignment);
+                                } else {
+                                  selectedAssignments.remove(assignment);
+                                }
+                              });
+                            },
+                          ),
+                          onTap: () {
                             setState(() {
-                              if (value == true) {
-                                selectedAssignments.add(assignment);
-                              } else {
+                              if (selectedAssignments.contains(assignment)) {
                                 selectedAssignments.remove(assignment);
+                              } else {
+                                selectedAssignments.add(assignment);
                               }
                             });
                           },
@@ -270,17 +277,18 @@ void showNoAnswerDialog(BuildContext context, Student s, DashboardProvider provi
               ),
             ),
             actions: [
-              TextButton(
+              AdaptiveButton(
+                label: 'Cancel',
+                style: AdaptiveButtonStyle.tinted,
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
               ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+              AdaptiveButton(
+                label: 'Apply No Answer',
+                style: AdaptiveButtonStyle.filled,
                 onPressed: () {
                   Navigator.pop(context);
                   provider.noAnswerStudent(context, s, selectedAssignments);
                 },
-                child: const Text('Apply No Answer'),
               ),
             ],
           );
@@ -293,7 +301,17 @@ void showNoAnswerDialog(BuildContext context, Student s, DashboardProvider provi
 void showFollowUpDialog(BuildContext context, Student s, DashboardProvider provider) {
   List<String> selectedAssignments = [];
   String generatedMessage = provider.generateMessage(s);
+  String baseMessage = generatedMessage;
   TextEditingController messageController = TextEditingController(text: generatedMessage);
+
+  void updateMessageWithAssignments() {
+    if (selectedAssignments.isEmpty) {
+      messageController.text = baseMessage;
+    } else {
+      final assignmentsList = selectedAssignments.join(', ');
+      messageController.text = '$baseMessage\n\nAssignments: $assignmentsList';
+    }
+  }
   
   showDialog(
     context: context,
@@ -301,37 +319,52 @@ void showFollowUpDialog(BuildContext context, Student s, DashboardProvider provi
       return StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
-            backgroundColor: ModernStyles.getCardColor(context),
-            title: Text('Follow Up: ${s.name}', style: TextStyle(color: ModernStyles.getTextColor(context))),
+            title: Text('Follow Up: ${s.name}'),
             content: SizedBox(
               width: double.maxFinite,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  TextField(
+                  AdaptiveTextField(
                     controller: messageController,
-                    decoration: const InputDecoration(
-                      labelText: 'WhatsApp Message',
-                      border: OutlineInputBorder(),
-                    ),
+                    placeholder: 'WhatsApp Message',
                     maxLines: 4,
+                    minLines: 4,
+                    onChanged: (value) {
+                      if (selectedAssignments.isEmpty) {
+                        baseMessage = value;
+                      }
+                    },
                   ),
                   const SizedBox(height: 10),
-                  const Text('Select Assignments to Follow Up (Optional):', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text('Select Assignments to Follow Up:', style: TextStyle(fontWeight: FontWeight.bold)),
                   Expanded(
                     child: ListView(
                       shrinkWrap: true,
                       children: provider.assignments.map((assignment) {
-                        return CheckboxListTile(
+                        return AdaptiveListTile(
                           title: Text(assignment),
-                          value: selectedAssignments.contains(assignment),
-                          onChanged: (bool? value) {
+                          trailing: AdaptiveCheckbox(
+                            value: selectedAssignments.contains(assignment),
+                            onChanged: (bool? value) {
+                              setState(() {
+                                if (value == true) {
+                                  selectedAssignments.add(assignment);
+                                } else {
+                                  selectedAssignments.remove(assignment);
+                                }
+                                updateMessageWithAssignments();
+                              });
+                            },
+                          ),
+                          onTap: () {
                             setState(() {
-                              if (value == true) {
-                                selectedAssignments.add(assignment);
-                              } else {
+                              if (selectedAssignments.contains(assignment)) {
                                 selectedAssignments.remove(assignment);
+                              } else {
+                                selectedAssignments.add(assignment);
                               }
+                              updateMessageWithAssignments();
                             });
                           },
                         );
@@ -342,17 +375,18 @@ void showFollowUpDialog(BuildContext context, Student s, DashboardProvider provi
               ),
             ),
             actions: [
-              TextButton(
+              AdaptiveButton(
+                label: 'Cancel',
+                style: AdaptiveButtonStyle.tinted,
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
               ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.blue, foregroundColor: Colors.white),
+              AdaptiveButton(
+                label: 'Send & Mark Followed Up',
+                style: AdaptiveButtonStyle.filled,
                 onPressed: () {
                   Navigator.pop(context);
                   provider.launchWhatsAppWeb(s, context, selectedAssignments, messageController.text);
                 },
-                child: const Text('Send & Mark Followed Up'),
               ),
             ],
           );

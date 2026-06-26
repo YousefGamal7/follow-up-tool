@@ -1,3 +1,4 @@
+import 'package:adaptive_platform_ui/adaptive_platform_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/report_models.dart';
@@ -37,37 +38,21 @@ class _AdvancedTeamReportView extends StatelessWidget {
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: 3,
-      child: Scaffold(
-        backgroundColor: ModernStyles.getCardColor(context),
-        appBar: AppBar(
-          backgroundColor: ModernStyles.blueRouteBackground,
-          title: Row(
-            children: [
-              Image.asset('assets/images/route.png', height: 48, errorBuilder: (context, error, stackTrace) => const Icon(Icons.error, color: Colors.white)),
-              const SizedBox(width: 12),
-              const Text('Blue Route Assignment Reports', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            ],
-          ),
-          centerTitle: false,
-          iconTheme: const IconThemeData(color: Colors.white),
+      child: AdaptiveScaffold(
+        appBar: AdaptiveAppBar(
+          title: 'Blue Route Assignment Reports',
           actions: [
-            Builder(
-              builder: (context) {
-                return IconButton(
-                  icon: const Icon(Icons.delete_sweep),
-                  tooltip: 'Clear Workshops & Attendance Cache',
-                  onPressed: () {
-                    context.read<ReportProvider>().clearLocalCache(context);
-                  },
-                );
-              }
+            AdaptiveAppBarAction(
+              icon: Icons.delete_sweep,
+              iosSymbol: 'trash',
+              onPressed: () {
+                context.read<ReportProvider>().clearLocalCache(context);
+              },
             ),
-            Builder(
-              builder: (context) {
-                return IconButton(
-                  icon: const Icon(Icons.picture_as_pdf),
-                  tooltip: 'Generate & Share PDF',
-                  onPressed: () async {
+            AdaptiveAppBarAction(
+              icon: Icons.picture_as_pdf,
+              iosSymbol: 'doc.text',
+              onPressed: () async {
                     final provider = context.read<ReportProvider>();
                     final resultPath = await PdfService.generateAndShareTeamReport(
                       allGroupAssignments: provider.allActiveAssignments,
@@ -100,9 +85,7 @@ class _AdvancedTeamReportView extends StatelessWidget {
                       }
                     }
                   },
-                );
-              }
-            ),
+                ),
           ],
         ),
         body: Column(
@@ -776,28 +759,12 @@ Widget _buildModernTextField({
   VoidCallback? onTap,
   TextInputType? keyboardType,
 }) {
-  return TextField(
+  return AdaptiveTextField(
     controller: controller,
     readOnly: readOnly,
     onTap: onTap,
     keyboardType: keyboardType,
-    cursorColor: ModernStyles.getTextColor(context),
-    decoration: InputDecoration(
-      labelText: labelText,
-      labelStyle: TextStyle(color: ModernStyles.getTextColor(context)),
-      prefixIcon: Icon(icon, color: ModernStyles.getTextColor(context)),
-      filled: true,
-      fillColor: Theme.of(context).brightness == Brightness.dark 
-          ? Colors.white.withOpacity(0.05) 
-          : Colors.grey.withOpacity(0.1),
-      enabledBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: ModernStyles.blueRouteDivider.withOpacity(0.5)),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderSide: const BorderSide(color: ModernStyles.blueRouteButton, width: 2),
-        borderRadius: BorderRadius.circular(16),
-      ),
-    ),
+    placeholder: labelText,
+    prefixIcon: Icon(icon, color: ModernStyles.getTextColor(context)),
   );
 }
