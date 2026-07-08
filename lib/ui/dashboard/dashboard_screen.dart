@@ -3,15 +3,17 @@ import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:send_message/theme/modern_styles.dart';
 import 'package:adaptive_platform_ui/adaptive_platform_ui.dart';
-import '../../providers/dashboard_provider.dart';
+import 'package:send_message/ui/project_viewer/project_viewer_screen.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../features/dashboard/presentation/cubit/dashboard_cubit.dart';
 import 'widgets/filter_sidebar_widget.dart';
 import 'widgets/students_table_widget.dart';
 import 'widgets/student_search_bottom_sheet.dart';
 import 'weekly_report_screen.dart';
 import 'advanced_team_report_screen.dart';
-import '../project_viewer/project_viewer_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
+
   const DashboardScreen({super.key});
 
   @override
@@ -39,18 +41,18 @@ class DashboardScreen extends StatelessWidget {
                 icon: LucideIcons.barChart2,
                 iosSymbol: 'chart.bar',
                 onPressed: () {
-                  final dashboardProvider = context.read<DashboardProvider>();
+                  final dashboardCubit = context.read<DashboardCubit>();
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) {
-                        final groups = dashboardProvider.groups.where((g) => g != 'All').toList();
+                        final groups = dashboardCubit.state.groups.where((g) => g != 'All').toList();
                         return AdvancedTeamReportScreen(
-                          instructor: dashboardProvider.selectedInstructor ?? 'Yousef Gamal',
+                          instructor: dashboardCubit.state.selectedInstructor ?? 'Yousef Gamal',
                           groups: groups.isNotEmpty ? groups : ['Group 1 : Friday 10Am ( Dokki )'],
-                          initialGroup: dashboardProvider.selectedGroup == 'All' || dashboardProvider.selectedGroup == null
+                          initialGroup: dashboardCubit.state.selectedGroup == 'All' || dashboardCubit.state.selectedGroup == null
                               ? (groups.isNotEmpty ? groups.first : 'Group 1 : Friday 10Am ( Dokki )')
-                              : dashboardProvider.selectedGroup!,
+                              : dashboardCubit.state.selectedGroup!,
                         );
                       },
                     ),
@@ -82,12 +84,12 @@ class DashboardScreen extends StatelessWidget {
                 },
               ),
               AdaptiveAppBarAction(
-                onPressed: context.read<DashboardProvider>().clearSentHistory,
+                onPressed: context.read<DashboardCubit>().clearSentHistory,
                 icon: LucideIcons.refreshCcw,
                 iosSymbol: 'arrow.clockwise',
               ),
               AdaptiveAppBarAction(
-                onPressed: () => context.read<DashboardProvider>().clearLocalCache(context),
+                onPressed: () => context.read<DashboardCubit>().clearLocalCache(),
                 icon: LucideIcons.trash2,
                 iosSymbol: 'trash',
               ),

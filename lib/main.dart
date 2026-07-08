@@ -1,17 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:adaptive_platform_ui/adaptive_platform_ui.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'providers/dashboard_provider.dart';
+import 'providers/dashboard_provider.dart'; // Keeping temporarily if other screens depend on it
 import 'providers/theme_provider.dart';
 import 'ui/dashboard/dashboard_screen.dart';
+import 'injection_container.dart' as di;
+import 'features/dashboard/presentation/cubit/dashboard_cubit.dart';
+
+import 'dart:io';
+import 'package:video_player_win/video_player_win.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (Platform.isWindows) {
+    WindowsVideoPlayer.registerWith();
+  }
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await di.init();
   runApp(const FinalWhatsAppApp());
 }
 
@@ -22,10 +32,12 @@ class FinalWhatsAppApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => DashboardProvider()),
+        ChangeNotifierProvider(create: (_) => DashboardProvider()), // Temporarily keep
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
-      child: Consumer<ThemeProvider>(
+      child: BlocProvider(
+        create: (_) => di.sl<DashboardCubit>(),
+        child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
           return AdaptiveApp(
             title: 'Smart Student Tracking System',
@@ -64,6 +76,7 @@ class FinalWhatsAppApp extends StatelessWidget {
             home: const DashboardScreen(),
           );
         },
+      ),
       ),
     );
   }

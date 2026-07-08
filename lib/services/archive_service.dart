@@ -2,11 +2,24 @@ import 'dart:io';
 import 'package:archive/archive_io.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:unrar_file/unrar_file.dart';
 
 class ArchiveService {
-  /// Extracts the given zip file into a temporary directory
+  /// Extracts the given archive file into a temporary directory
   /// Returns the Directory where the contents were extracted.
-  Future<Directory> extractZipToTemp(File zipFile) async {
+  Future<Directory> extractArchiveToTemp(File archiveFile) async {
+    final ext = p.extension(archiveFile.path).toLowerCase();
+    
+    if (ext == '.zip') {
+      return _extractZipToTemp(archiveFile);
+    } else if (ext == '.rar') {
+      return _extractRarToTemp(archiveFile);
+    } else {
+      throw Exception('Unsupported archive format: $ext');
+    }
+  }
+
+  Future<Directory> _extractZipToTemp(File zipFile) async {
     final tempDir = await getTemporaryDirectory();
     final extractionPath = p.join(tempDir.path, 'project_viewer_${DateTime.now().millisecondsSinceEpoch}');
     final destDir = Directory(extractionPath);
@@ -25,6 +38,29 @@ class ArchiveService {
       } else {
         await Directory(p.join(destDir.path, filename)).create(recursive: true);
       }
+    }
+
+    return destDir;
+  }
+
+  Future<Directory> _extractRarToTemp(File rarFile) async {
+    final tempDir = await getTemporaryDirectory();
+    final extractionPath = p.join(tempDir.path, 'project_viewer_${DateTime.now().millisecondsSinceEpoch}');
+    final destDir = Directory(extractionPath);
+    await destDir.create(recursive: true);
+
+    if (Platform.isWindows) {
+      final unrarPath = r'C:\Program Files\WinRAR\UnRAR.exe';
+      if (File(unrarPath).existsSync()) {
+        final result = await Process.run(unrarPath, ['x', '-y', rarFile.path, '${destDir.path}\\']);
+        if (result.exitCode != 0) {
+          throw Exception('UnRAR failed: ${result.stderr}');
+        }
+      } else {
+        throw Exception('WinRAR is required to extract .rar files on Windows. Please install WinRAR in the default directory.');
+      }
+    } else {
+      await UnrarFile.extract_rar(rarFile.path, destDir.path);
     }
 
     return destDir;

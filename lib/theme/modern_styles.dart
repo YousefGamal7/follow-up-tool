@@ -13,21 +13,22 @@ class ModernStyles {
   static const Color blueRouteDivider = Color(0xFFEAECF0);
 
   static Color getCardColor(BuildContext context) {
-    return Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white;
+    return Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xFF1E293B)
+        : Colors.white;
   }
 
   static Color getTextColor(BuildContext context) {
-    return Theme.of(context).brightness == Brightness.dark ? Colors.white : blueRouteDarkText;
+    return Theme.of(context).brightness == Brightness.dark
+        ? Colors.white
+        : blueRouteDarkText;
   }
 
   static BoxDecoration glassPanel(BuildContext context) {
     return BoxDecoration(
       color: Colors.white,
       borderRadius: BorderRadius.circular(16),
-      border: Border.all(
-        color: blueRouteDivider,
-        width: 1.0,
-      ),
+      border: Border.all(color: blueRouteDivider, width: 1.0),
       boxShadow: [
         BoxShadow(
           color: Colors.black.withOpacity(0.05),
@@ -38,15 +39,17 @@ class ModernStyles {
     );
   }
 
-  static BoxDecoration glowingContainer(BuildContext context, {Color? glowColor, double opacity = 0.5, double borderRadius = 12}) {
+  static BoxDecoration glowingContainer(
+    BuildContext context, {
+    Color? glowColor,
+    double opacity = 0.5,
+    double borderRadius = 12,
+  }) {
     final color = glowColor ?? blueRouteButton;
     return BoxDecoration(
       color: color.withOpacity(0.15),
       borderRadius: BorderRadius.circular(borderRadius),
-      border: Border.all(
-        color: color.withOpacity(0.6),
-        width: 1.5,
-      ),
+      border: Border.all(color: color.withOpacity(0.6), width: 1.5),
       boxShadow: [
         BoxShadow(
           color: color.withOpacity(opacity),
