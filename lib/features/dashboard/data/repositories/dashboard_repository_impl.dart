@@ -4,6 +4,7 @@ import '../../domain/entities/student_entity.dart';
 import '../../domain/repositories/dashboard_repository.dart';
 import '../../../../services/google_sheets_service.dart';
 import '../../../../services/multi_sheet_sync_service.dart';
+import '../../../../core/config/cycle_config.dart';
 
 class DashboardRepositoryImpl implements DashboardRepository {
   final GoogleSheetsService sheetsService;
@@ -13,6 +14,19 @@ class DashboardRepositoryImpl implements DashboardRepository {
     required this.sheetsService,
     required this.multiSheetSyncService,
   });
+
+  @override
+  void setCycle(String cycleName) {
+    final cycle = availableCycles.firstWhere(
+      (c) => c.name == cycleName,
+      orElse: () => availableCycles.first,
+    );
+    sheetsService.setSpreadsheetId(cycle.gradesSpreadsheetId);
+    multiSheetSyncService.setSpreadsheetIds(
+      cycle.gradesSpreadsheetId,
+      cycle.followUpSpreadsheetId,
+    );
+  }
 
   @override
   Future<InstructorDataEntity?> fetchInstructorData(String instructorName, String? selectedAssignment) async {

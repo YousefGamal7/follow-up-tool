@@ -380,13 +380,27 @@ void showFollowUpDialog(BuildContext context, Student s, DashboardProvider provi
                 style: AdaptiveButtonStyle.tinted,
                 onPressed: () => Navigator.pop(context),
               ),
-              AdaptiveButton(
-                label: 'Send & Mark Followed Up',
-                style: AdaptiveButtonStyle.filled,
-                onPressed: () {
-                  Navigator.pop(context);
-                  provider.launchWhatsAppWeb(s, context, selectedAssignments, messageController.text);
-                },
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  AdaptiveButton(
+                    label: 'WhatsApp',
+                    style: AdaptiveButtonStyle.filled,
+                    onPressed: () {
+                      Navigator.pop(context);
+                      provider.launchWhatsAppWeb(s, context, selectedAssignments, messageController.text);
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  AdaptiveButton(
+                    label: 'Telegram',
+                    style: AdaptiveButtonStyle.filled,
+                    onPressed: () {
+                      Navigator.pop(context);
+                      provider.launchTelegramWeb(s, context, selectedAssignments, messageController.text);
+                    },
+                  ),
+                ],
               ),
             ],
           );

@@ -4,10 +4,14 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/student.dart';
 import '../services/google_sheets_service.dart';
 import '../services/multi_sheet_sync_service.dart';
+import '../core/config/cycle_config.dart' as config;
 
 class DashboardProvider extends ChangeNotifier {
   final GoogleSheetsService _sheetsService = GoogleSheetsService();
   final MultiSheetSyncService _multiSheetSyncService = MultiSheetSyncService();
+
+  String selectedCycle = 'C19';
+  List<String> get availableCycles => config.availableCycles.map((e) => e.name).toList();
 
   String? selectedInstructor = 'Yousef Gamal';
   String? selectedGroup = 'All';
@@ -59,7 +63,23 @@ class DashboardProvider extends ChangeNotifier {
   DashboardProvider() {
     _loadTemplates();
     _loadSentHistory();
+    // Initialize cycle
+    setCycle(selectedCycle);
+  }
+
+  void setCycle(String cycleName) {
+    selectedCycle = cycleName;
+    final cycle = config.availableCycles.firstWhere(
+      (c) => c.name == cycleName,
+      orElse: () => config.availableCycles.first,
+    );
+    _sheetsService.setSpreadsheetId(cycle.gradesSpreadsheetId);
+    _multiSheetSyncService.setSpreadsheetIds(
+      cycle.gradesSpreadsheetId,
+      cycle.followUpSpreadsheetId,
+    );
     fetchData();
+    notifyListeners();
   }
 
   void _addLog(String message) {
@@ -192,6 +212,51 @@ class DashboardProvider extends ChangeNotifier {
       try {
         await _multiSheetSyncService.markAsFollowedUp(
           email: s.email ?? '${s.name.replaceAll(' ', '')}@gmail.com', // fallback logic, normally should use s.email
+          messageSent: customMessage,
+          sheetName: selectedInstructor!,
+          assignments: assignments,
+        );
+        if (assignments.isNotEmpty) {
+          _addLog("Marked ${s.name} as Followed up in assignments.");
+        } else {
+          _addLog("Marked ${s.name} as Followed up in Follow-up column.");
+        }
+      } catch (e) {
+         _addLog("Warning: Could not mark follow up in sheets: $e");
+      }
+    }
+  }
+
+  Future<void> launchTelegramWeb(Student s, BuildContext context, List<String> assignments, String customMessage) async {
+    bool launched = false;
+    final String encodedMsg = Uri.encodeComponent(customMessage);
+    
+    String phone = s.phone.trim();
+    if (phone.startsWith('01') && phone.length == 11) {
+      phone = '+20${phone.substring(1)}';
+    } else if (!phone.startsWith('+')) {
+      phone = '+$phone';
+    }
+
+    final String tgUrl = "tg://msg?to=$phone&text=$encodedMsg";
+    try {
+      launched = await launchUrl(Uri.parse(tgUrl), mode: LaunchMode.externalApplication);
+    } catch (_) {}
+
+    if (!launched) {
+      final String webUrl = "https://t.me/$phone?text=$encodedMsg";
+      try {
+        launched = await launchUrl(Uri.parse(webUrl), mode: LaunchMode.externalApplication);
+      } catch (_) {}
+    }
+
+    if (launched) {
+      await markAsSent(s.phone);
+      _addLog("Telegram launched for ${s.name}");
+      
+      try {
+        await _multiSheetSyncService.markAsFollowedUp(
+          email: s.email ?? '${s.name.replaceAll(' ', '')}@gmail.com',
           messageSent: customMessage,
           sheetName: selectedInstructor!,
           assignments: assignments,

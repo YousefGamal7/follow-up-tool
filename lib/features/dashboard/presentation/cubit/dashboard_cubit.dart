@@ -20,6 +20,7 @@ class DashboardCubit extends Cubit<DashboardState> {
   Future<void> _init() async {
     await _loadTemplates();
     await _loadSentHistory();
+    repository.setCycle(state.selectedCycle);
     await fetchData();
   }
 
@@ -151,8 +152,56 @@ class DashboardCubit extends Cubit<DashboardState> {
     }
   }
 
+  Future<void> launchTelegramWeb(StudentEntity s, String customMessage, List<String> assignments, {bool isAndroid = false}) async {
+    bool launched = false;
+    final String encodedMsg = Uri.encodeComponent(customMessage);
+    
+    String phone = s.phone.trim();
+    if (phone.startsWith('01') && phone.length == 11) {
+      phone = '+20${phone.substring(1)}';
+    } else if (!phone.startsWith('+')) {
+      phone = '+$phone';
+    }
+
+    final String tgUrl = "tg://msg?to=$phone&text=$encodedMsg";
+    try { launched = await launchUrl(Uri.parse(tgUrl), mode: LaunchMode.externalApplication); } catch (_) {}
+
+    if (!launched) {
+      final String webUrl = "https://t.me/$phone?text=$encodedMsg";
+      try { launched = await launchUrl(Uri.parse(webUrl), mode: LaunchMode.externalApplication); } catch (_) {}
+    }
+
+    if (launched) {
+      await markAsSent(s.phone);
+      _addLog("Telegram launched for ${s.name}");
+      
+      try {
+        await repository.markAsFollowedUp(
+          email: s.email ?? '${s.name.replaceAll(' ', '')}@gmail.com',
+          messageSent: customMessage,
+          sheetName: state.selectedInstructor!,
+          assignments: assignments,
+        );
+        if (assignments.isNotEmpty) {
+          _addLog("Marked ${s.name} as Followed up in assignments.");
+        } else {
+          _addLog("Marked ${s.name} as Followed up in Follow-up column.");
+        }
+      } catch (e) {
+         _addLog("Warning: Could not mark follow up in sheets: $e");
+      }
+    }
+  }
+
   void setInstructor(String? instructor) {
     emit(state.copyWith(selectedInstructor: instructor));
+    fetchData();
+  }
+
+  void setCycle(String? cycleName) {
+    if (cycleName == null) return;
+    emit(state.copyWith(selectedCycle: cycleName));
+    repository.setCycle(cycleName);
     fetchData();
   }
 

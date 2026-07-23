@@ -8,12 +8,14 @@ import '../../theme/modern_styles.dart';
 
 class AdvancedTeamReportScreen extends StatelessWidget {
   final String instructor;
+  final String cycleName;
   final List<String> groups;
   final String initialGroup;
 
   const AdvancedTeamReportScreen({
     super.key, 
     required this.instructor, 
+    required this.cycleName,
     required this.groups,
     required this.initialGroup,
   });
@@ -23,6 +25,7 @@ class AdvancedTeamReportScreen extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => ReportProvider(
         instructor: instructor, 
+        cycleName: cycleName,
         groups: groups,
         initialGroup: initialGroup,
       ),

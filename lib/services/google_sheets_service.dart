@@ -19,11 +19,15 @@ class GoogleSheetsService {
 }
 ''';
 
-  static const String _spreadsheetId = '1KpCOplQNw4C5ubyxlZcTGdLK4HszAujez7QjyEZfohM';
+  String _spreadsheetId = '1KpCOplQNw4C5ubyxlZcTGdLK4HszAujez7QjyEZfohM';
 
   final GSheets _gsheets;
 
   GoogleSheetsService() : _gsheets = GSheets(_credentials);
+
+  void setSpreadsheetId(String id) {
+    _spreadsheetId = id;
+  }
 
   Future<Map<String, dynamic>?> fetchInstructorData(
       String instructorName, String? selectedAssignment) async {

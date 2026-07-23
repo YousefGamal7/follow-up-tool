@@ -3,10 +3,13 @@ import '../models/report_models.dart';
 
 class FirestoreSyncService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final String cycleName;
+
+  FirestoreSyncService({required this.cycleName});
 
   // Collection References
-  CollectionReference get _workshopsRef => _firestore.collection('workshops');
-  CollectionReference get _attendanceRef => _firestore.collection('attendance');
+  CollectionReference get _workshopsRef => _firestore.collection('workshops_$cycleName');
+  CollectionReference get _attendanceRef => _firestore.collection('attendance_$cycleName');
 
   // Generate a unique ID for a WorkshopSession
   String _generateWorkshopId(WorkshopSession session) {

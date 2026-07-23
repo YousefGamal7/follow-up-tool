@@ -5,6 +5,7 @@ class DashboardState extends Equatable {
   final bool isLoading;
   final String? error;
   
+  final String selectedCycle;
   final String? selectedInstructor;
   final String? selectedGroup;
   final String? selectedAssignment;
@@ -12,6 +13,7 @@ class DashboardState extends Equatable {
   final String? selectedDynamicTask;
 
   final List<String> dynamicTasks;
+  final List<String> availableCycles;
   final List<String> instructors;
   final List<String> groups;
   final List<String> assignments;
@@ -32,6 +34,7 @@ class DashboardState extends Equatable {
   const DashboardState({
     this.isLoading = false,
     this.error,
+    this.selectedCycle = 'C19',
     this.selectedInstructor = 'Yousef Gamal',
     this.selectedGroup = 'All',
     this.selectedAssignment,
@@ -42,6 +45,7 @@ class DashboardState extends Equatable {
       'OOP1', 'OOP2', 'Whatsapp', 'Facebook', 'Space', 
       'Contacts', 'Islami', 'Evently', 'News', 'Movie'
     ],
+    this.availableCycles = const ['C19', 'C20'],
     this.instructors = const [
       'Yousef Gamal',
       'Mahmoud Ibrahim',
@@ -74,12 +78,14 @@ class DashboardState extends Equatable {
   DashboardState copyWith({
     bool? isLoading,
     String? error,
+    String? selectedCycle,
     String? selectedInstructor,
     String? selectedGroup,
     String? selectedAssignment,
     String? selectedFilter,
     String? selectedDynamicTask,
     List<String>? dynamicTasks,
+    List<String>? availableCycles,
     List<String>? instructors,
     List<String>? groups,
     List<String>? assignments,
@@ -97,12 +103,14 @@ class DashboardState extends Equatable {
     return DashboardState(
       isLoading: isLoading ?? this.isLoading,
       error: error, // Clear error if not provided
+      selectedCycle: selectedCycle ?? this.selectedCycle,
       selectedInstructor: selectedInstructor ?? this.selectedInstructor,
       selectedGroup: selectedGroup ?? this.selectedGroup,
       selectedAssignment: selectedAssignment ?? this.selectedAssignment,
       selectedFilter: selectedFilter ?? this.selectedFilter,
       selectedDynamicTask: selectedDynamicTask ?? this.selectedDynamicTask,
       dynamicTasks: dynamicTasks ?? this.dynamicTasks,
+      availableCycles: availableCycles ?? this.availableCycles,
       instructors: instructors ?? this.instructors,
       groups: groups ?? this.groups,
       assignments: assignments ?? this.assignments,
@@ -121,8 +129,8 @@ class DashboardState extends Equatable {
 
   @override
   List<Object?> get props => [
-    isLoading, error, selectedInstructor, selectedGroup, selectedAssignment,
-    selectedFilter, selectedDynamicTask, dynamicTasks, instructors, groups,
+    isLoading, error, selectedCycle, selectedInstructor, selectedGroup, selectedAssignment,
+    selectedFilter, selectedDynamicTask, dynamicTasks, availableCycles, instructors, groups,
     assignments, filters, allStudents, filteredStudents, selectedStudents,
     sentPhones, savedMaleTemplates, savedFemaleTemplates, isMaleTemplate,
     selectedTemplate, actionLogs

@@ -49,6 +49,7 @@ class DashboardScreen extends StatelessWidget {
                         final groups = dashboardCubit.state.groups.where((g) => g != 'All').toList();
                         return AdvancedTeamReportScreen(
                           instructor: dashboardCubit.state.selectedInstructor ?? 'Yousef Gamal',
+                          cycleName: dashboardCubit.state.selectedCycle,
                           groups: groups.isNotEmpty ? groups : ['Group 1 : Friday 10Am ( Dokki )'],
                           initialGroup: dashboardCubit.state.selectedGroup == 'All' || dashboardCubit.state.selectedGroup == null
                               ? (groups.isNotEmpty ? groups.first : 'Group 1 : Friday 10Am ( Dokki )')

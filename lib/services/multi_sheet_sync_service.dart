@@ -22,12 +22,12 @@ class MultiSheetSyncService {
 }
 ''';
 
-  static const String _gradesSpreadsheetId = '1KpCOplQNw4C5ubyxlZcTGdLK4HszAujez7QjyEZfohM'; // Assignments
-  static const String _followUpSpreadsheetId = '1pHuK4Jk1YUVQjcMbpSU0cvKGitmb9QeJrVV81r3OwiE'; // Follow up
+  String _gradesSpreadsheetId = '1KpCOplQNw4C5ubyxlZcTGdLK4HszAujez7QjyEZfohM'; // Assignments
+  String _followUpSpreadsheetId = '1pHuK4Jk1YUVQjcMbpSU0cvKGitmb9QeJrVV81r3OwiE'; // Follow up
   
   late final GSheets _gsheets;
-  late final Future<Spreadsheet> _gradesSpreadsheetFuture;
-  late final Future<Spreadsheet> _followUpSpreadsheetFuture;
+  late Future<Spreadsheet> _gradesSpreadsheetFuture;
+  late Future<Spreadsheet> _followUpSpreadsheetFuture;
   late final Future<sheets.SheetsApi> _sheetsApiFuture;
 
   MultiSheetSyncService() {
@@ -35,6 +35,13 @@ class MultiSheetSyncService {
     _gradesSpreadsheetFuture = _gsheets.spreadsheet(_gradesSpreadsheetId);
     _followUpSpreadsheetFuture = _gsheets.spreadsheet(_followUpSpreadsheetId);
     _sheetsApiFuture = _initSheetsApi();
+  }
+
+  void setSpreadsheetIds(String gradesId, String followUpId) {
+    _gradesSpreadsheetId = gradesId;
+    _followUpSpreadsheetId = followUpId;
+    _gradesSpreadsheetFuture = _gsheets.spreadsheet(_gradesSpreadsheetId);
+    _followUpSpreadsheetFuture = _gsheets.spreadsheet(_followUpSpreadsheetId);
   }
 
   Future<sheets.SheetsApi> _initSheetsApi() async {

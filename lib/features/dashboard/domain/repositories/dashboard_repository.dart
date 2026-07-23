@@ -10,4 +10,5 @@ abstract class DashboardRepository {
   Future<int> syncGradesToStatus(String task, {required String sheetName});
   Future<int> syncAllAssignmentsToFollowUp({required String sheetName});
   Future<void> markAsFollowedUp({required String email, required String messageSent, required String sheetName, required List<String> assignments});
+  void setCycle(String cycleName);
 }

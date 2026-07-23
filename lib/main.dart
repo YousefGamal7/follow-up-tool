@@ -12,8 +12,30 @@ import 'features/dashboard/presentation/cubit/dashboard_cubit.dart';
 
 import 'dart:io';
 import 'package:video_player_win/video_player_win.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+Future<void> _migrateOldDataToC19() async {
+  final prefs = await SharedPreferences.getInstance();
+  
+  final c19Workshops = prefs.getString('workshops_data_C19');
+  if (prefs.containsKey('workshops_data') && (c19Workshops == null || c19Workshops == '[]')) {
+    final oldData = prefs.getString('workshops_data');
+    if (oldData != null && oldData != '[]') {
+      await prefs.setString('workshops_data_C19', oldData);
+    }
+  }
+
+  final c19Attendance = prefs.getString('attendance_data_C19');
+  if (prefs.containsKey('attendance_data') && (c19Attendance == null || c19Attendance == '[]')) {
+    final oldData = prefs.getString('attendance_data');
+    if (oldData != null && oldData != '[]') {
+      await prefs.setString('attendance_data_C19', oldData);
+    }
+  }
+}
 
 void main() async {
+  //
   WidgetsFlutterBinding.ensureInitialized();
   if (Platform.isWindows) {
     WindowsVideoPlayer.registerWith();
@@ -21,6 +43,7 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await _migrateOldDataToC19();
   await di.init();
   runApp(const FinalWhatsAppApp());
 }

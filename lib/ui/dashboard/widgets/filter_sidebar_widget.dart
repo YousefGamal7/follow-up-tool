@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:adaptive_platform_ui/adaptive_platform_ui.dart';
 import '../../../providers/dashboard_provider.dart';
+import '../../../features/dashboard/presentation/cubit/dashboard_cubit.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../theme/modern_styles.dart';
 import 'history_log_widget.dart';
 
@@ -26,6 +28,18 @@ class FilterSidebarWidget extends StatelessWidget {
                 return ListView(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   children: [
+                    _buildDrop(
+                      context,
+                      "Cycle",
+                      provider.availableCycles,
+                      provider.selectedCycle,
+                      (val) {
+                        if (val != null) {
+                          provider.setCycle(val);
+                          context.read<DashboardCubit>().setCycle(val);
+                        }
+                      },
+                    ),
                     _buildDrop(
                       context,
                       "Mentor",

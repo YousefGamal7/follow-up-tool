@@ -4,9 +4,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/report_models.dart';
 import '../services/multi_sheet_sync_service.dart';
 import '../services/firestore_sync_service.dart';
+import '../core/config/cycle_config.dart' as config;
 
 class ReportProvider extends ChangeNotifier {
   final String instructor;
+  final String cycleName;
   List<String> availableGroups;
   String selectedGroup;
 
@@ -19,6 +21,7 @@ class ReportProvider extends ChangeNotifier {
 
   ReportProvider({
     required this.instructor, 
+    required this.cycleName,
     required List<String> groups, 
     required String initialGroup
   }) : availableGroups = groups,
@@ -43,7 +46,14 @@ class ReportProvider extends ChangeNotifier {
       assignmentsError = null;
       notifyListeners();
 
+      final cycle = config.availableCycles.firstWhere(
+        (c) => c.name == cycleName,
+        orElse: () => config.availableCycles.first,
+      );
+
       final syncService = MultiSheetSyncService();
+      syncService.setSpreadsheetIds(cycle.gradesSpreadsheetId, cycle.followUpSpreadsheetId);
+      
       _allAssignments = await syncService.getAllGroupAssignmentsReport(instructor, availableGroups);
       
       isLoadingAssignments = false;
@@ -78,7 +88,7 @@ class ReportProvider extends ChangeNotifier {
   Future<void> _loadData() async {
     final prefs = await SharedPreferences.getInstance();
 
-    final workshopsString = prefs.getString('workshops_data');
+    final workshopsString = prefs.getString('workshops_data_$cycleName');
     if (workshopsString != null) {
       try {
         final List<dynamic> decoded = jsonDecode(workshopsString);
@@ -88,7 +98,7 @@ class ReportProvider extends ChangeNotifier {
       }
     }
 
-    final attendanceString = prefs.getString('attendance_data');
+    final attendanceString = prefs.getString('attendance_data_$cycleName');
     if (attendanceString != null) {
       try {
         final List<dynamic> decoded = jsonDecode(attendanceString);
@@ -107,7 +117,7 @@ class ReportProvider extends ChangeNotifier {
   }
 
   Future<void> _syncWithFirestore() async {
-    final firestoreSync = FirestoreSyncService();
+    final firestoreSync = FirestoreSyncService(cycleName: cycleName);
     
     // Fetch from Firestore
     final firestoreWorkshops = await firestoreSync.fetchWorkshops();
@@ -148,8 +158,8 @@ class ReportProvider extends ChangeNotifier {
 
     // Update local storage with merged data
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('workshops_data', jsonEncode(_workshops.map((e) => e.toJson()).toList()));
-    await prefs.setString('attendance_data', jsonEncode(_attendanceRecords.map((e) => e.toJson()).toList()));
+    await prefs.setString('workshops_data_$cycleName', jsonEncode(_workshops.map((e) => e.toJson()).toList()));
+    await prefs.setString('attendance_data_$cycleName', jsonEncode(_attendanceRecords.map((e) => e.toJson()).toList()));
   }
 
   Future<void> addWorkshop(WorkshopSession session) async {
@@ -160,9 +170,9 @@ class ReportProvider extends ChangeNotifier {
     final String encoded = jsonEncode(
       _workshops.map((e) => e.toJson()).toList(),
     );
-    await prefs.setString('workshops_data', encoded);
+    await prefs.setString('workshops_data_$cycleName', encoded);
 
-    final firestoreSync = FirestoreSyncService();
+    final firestoreSync = FirestoreSyncService(cycleName: cycleName);
     await firestoreSync.syncWorkshop(session);
   }
 
@@ -174,16 +184,16 @@ class ReportProvider extends ChangeNotifier {
     final String encoded = jsonEncode(
       _attendanceRecords.map((e) => e.toJson()).toList(),
     );
-    await prefs.setString('attendance_data', encoded);
+    await prefs.setString('attendance_data_$cycleName', encoded);
 
-    final firestoreSync = FirestoreSyncService();
+    final firestoreSync = FirestoreSyncService(cycleName: cycleName);
     await firestoreSync.syncAttendanceRecord(record);
   }
 
   Future<void> clearLocalCache(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('workshops_data');
-    await prefs.remove('attendance_data');
+    await prefs.remove('workshops_data_$cycleName');
+    await prefs.remove('attendance_data_$cycleName');
     
     _workshops.clear();
     _attendanceRecords.clear();
