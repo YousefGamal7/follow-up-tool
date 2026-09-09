@@ -82,8 +82,27 @@ class ReportProvider extends ChangeNotifier {
     return result;
   }
 
-  List<WorkshopSession> get workshops => _workshops;
-  List<BranchAttendance> get attendanceRecords => _attendanceRecords;
+  DateTime _parseDate(String dateStr) {
+    try {
+      final parts = dateStr.split('/');
+      if (parts.length == 3) {
+        return DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+      }
+    } catch (_) {}
+    return DateTime.now();
+  }
+
+  List<WorkshopSession> get workshops {
+    final sorted = List<WorkshopSession>.from(_workshops);
+    sorted.sort((a, b) => _parseDate(b.date).compareTo(_parseDate(a.date)));
+    return sorted;
+  }
+
+  List<BranchAttendance> get attendanceRecords {
+    final sorted = List<BranchAttendance>.from(_attendanceRecords);
+    sorted.sort((a, b) => _parseDate(b.date).compareTo(_parseDate(a.date)));
+    return sorted;
+  }
 
   Future<void> _loadData() async {
     final prefs = await SharedPreferences.getInstance();
@@ -162,6 +181,39 @@ class ReportProvider extends ChangeNotifier {
     await prefs.setString('attendance_data_$cycleName', jsonEncode(_attendanceRecords.map((e) => e.toJson()).toList()));
   }
 
+  Future<void> forceSyncWithFirestore(BuildContext context) async {
+    try {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Syncing with Firebase...'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
+      
+      await _syncWithFirestore();
+      
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Synced with Firebase successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Error syncing: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> addWorkshop(WorkshopSession session) async {
     _workshops.add(session);
     notifyListeners();
@@ -188,6 +240,34 @@ class ReportProvider extends ChangeNotifier {
 
     final firestoreSync = FirestoreSyncService(cycleName: cycleName);
     await firestoreSync.syncAttendanceRecord(record);
+  }
+
+  Future<void> updateWorkshop(WorkshopSession oldSession, WorkshopSession newSession) async {
+    final index = _workshops.indexOf(oldSession);
+    if (index != -1) {
+      _workshops[index] = newSession;
+      notifyListeners();
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('workshops_data_$cycleName', jsonEncode(_workshops.map((e) => e.toJson()).toList()));
+
+      final firestoreSync = FirestoreSyncService(cycleName: cycleName);
+      await firestoreSync.syncWorkshop(newSession);
+    }
+  }
+
+  Future<void> updateAttendance(BranchAttendance oldRecord, BranchAttendance newRecord) async {
+    final index = _attendanceRecords.indexOf(oldRecord);
+    if (index != -1) {
+      _attendanceRecords[index] = newRecord;
+      notifyListeners();
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('attendance_data_$cycleName', jsonEncode(_attendanceRecords.map((e) => e.toJson()).toList()));
+
+      final firestoreSync = FirestoreSyncService(cycleName: cycleName);
+      await firestoreSync.syncAttendanceRecord(newRecord);
+    }
   }
 
   Future<void> clearLocalCache(BuildContext context) async {

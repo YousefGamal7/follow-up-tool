@@ -46,6 +46,13 @@ class _AdvancedTeamReportView extends StatelessWidget {
           title: 'Blue Route Assignment Reports',
           actions: [
             AdaptiveAppBarAction(
+              icon: Icons.sync,
+              iosSymbol: 'arrow.triangle.2.circlepath',
+              onPressed: () {
+                context.read<ReportProvider>().forceSyncWithFirestore(context);
+              },
+            ),
+            AdaptiveAppBarAction(
               icon: Icons.delete_sweep,
               iosSymbol: 'trash',
               onPressed: () {
@@ -317,6 +324,10 @@ class _WorkshopsTab extends StatelessWidget {
                                   '${ws.attendance}', 
                                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: ModernStyles.blueRouteBackground),
                                 ),
+                                IconButton(
+                                  icon: const Icon(Icons.edit, size: 20, color: Colors.grey),
+                                  onPressed: () => _showAddWorkshopDialog(context, editSession: ws),
+                                ),
                               ],
                             ),
                           ],
@@ -355,12 +366,12 @@ class _WorkshopsTab extends StatelessWidget {
     );
   }
 
-  void _showAddWorkshopDialog(BuildContext context) {
-    final topicCtrl = TextEditingController();
-    final dateCtrl = TextEditingController();
-    final attendanceCtrl = TextEditingController();
-    final startCtrl = TextEditingController();
-    final endCtrl = TextEditingController();
+  void _showAddWorkshopDialog(BuildContext context, {WorkshopSession? editSession}) {
+    final topicCtrl = TextEditingController(text: editSession?.topic ?? '');
+    final dateCtrl = TextEditingController(text: editSession?.date ?? '');
+    final attendanceCtrl = TextEditingController(text: editSession?.attendance.toString() ?? '');
+    final startCtrl = TextEditingController(text: editSession?.startTime ?? '');
+    final endCtrl = TextEditingController(text: editSession?.endTime ?? '');
     final provider = context.read<ReportProvider>();
 
     showModalBottomSheet(
@@ -388,7 +399,7 @@ class _WorkshopsTab extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Add New Workshop', 
+                      editSession != null ? 'Edit Workshop' : 'Add New Workshop', 
                       style: Theme.of(ctx).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: ModernStyles.getTextColor(ctx))
                     ),
                     IconButton(
@@ -485,7 +496,11 @@ class _WorkshopsTab extends StatelessWidget {
                           startTime: startCtrl.text,
                           endTime: endCtrl.text,
                         );
-                        provider.addWorkshop(session);
+                        if (editSession != null) {
+                          provider.updateWorkshop(editSession, session);
+                        } else {
+                          provider.addWorkshop(session);
+                        }
                         Navigator.pop(ctx);
                       }
                     },
@@ -494,7 +509,7 @@ class _WorkshopsTab extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text('Save Workshop', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                    child: Text(editSession != null ? 'Update Workshop' : 'Save Workshop', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -545,16 +560,24 @@ class _AttendanceTab extends StatelessWidget {
                               att.week, 
                               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: ModernStyles.getTextColor(context))
                             ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: ModernStyles.blueRouteBackground.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                att.branchName, 
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: ModernStyles.blueRouteBackground),
-                              ),
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: ModernStyles.blueRouteBackground.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    att.branchName, 
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: ModernStyles.blueRouteBackground),
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.edit, size: 20, color: Colors.grey),
+                                  onPressed: () => _showAddAttendanceDialog(context, editRecord: att),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -592,13 +615,13 @@ class _AttendanceTab extends StatelessWidget {
     );
   }
 
-  void _showAddAttendanceDialog(BuildContext context) {
-    final weekCtrl = TextEditingController();
-    final dateCtrl = TextEditingController();
-    final dayCtrl = TextEditingController();
-    final arriveCtrl = TextEditingController();
-    final endCtrl = TextEditingController();
-    final branchNameCtrl = TextEditingController(text: 'Dokki');
+  void _showAddAttendanceDialog(BuildContext context, {BranchAttendance? editRecord}) {
+    final weekCtrl = TextEditingController(text: editRecord?.week ?? '');
+    final dateCtrl = TextEditingController(text: editRecord?.date ?? '');
+    final dayCtrl = TextEditingController(text: editRecord?.day ?? '');
+    final arriveCtrl = TextEditingController(text: editRecord?.arriveTime ?? '');
+    final endCtrl = TextEditingController(text: editRecord?.endTime ?? '');
+    final branchNameCtrl = TextEditingController(text: editRecord?.branchName ?? 'Dokki');
     final provider = context.read<ReportProvider>();
 
     showModalBottomSheet(
@@ -626,7 +649,7 @@ class _AttendanceTab extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Add Branch Attendance', 
+                      editRecord != null ? 'Edit Branch Attendance' : 'Add Branch Attendance', 
                       style: Theme.of(ctx).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: ModernStyles.getTextColor(ctx))
                     ),
                     IconButton(
@@ -731,7 +754,11 @@ class _AttendanceTab extends StatelessWidget {
                           endTime: endCtrl.text,
                           branchName: branchNameCtrl.text,
                         );
-                        provider.addAttendance(record);
+                        if (editRecord != null) {
+                          provider.updateAttendance(editRecord, record);
+                        } else {
+                          provider.addAttendance(record);
+                        }
                         Navigator.pop(ctx);
                       }
                     },
@@ -740,7 +767,7 @@ class _AttendanceTab extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text('Save Attendance', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                    child: Text(editRecord != null ? 'Update Attendance' : 'Save Attendance', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
                   ),
                 ),
                 const SizedBox(height: 24),

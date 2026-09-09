@@ -58,7 +58,7 @@ class StudentsTableWidget extends StatelessWidget {
                     return null;
                   },
                 ),
-                showCheckboxColumn: true,
+                showCheckboxColumn: false,
                 columns: tableColumns,
                 rows: provider.filteredStudents
                     .map((s) => buildStudentRow(context, s, provider))

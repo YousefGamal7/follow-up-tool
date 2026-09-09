@@ -564,6 +564,33 @@ class MultiSheetSyncService {
     required String sheetName,
     required List<String> assignments,
   }) async {
+    const int maxRetries = 2;
+    for (int attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        await _markAsFollowedUpInternal(
+          email: email,
+          messageSent: messageSent,
+          sheetName: sheetName,
+          assignments: assignments,
+        );
+        return;
+      } catch (e) {
+        final errStr = e.toString();
+        if (attempt == maxRetries || errStr.contains('not found')) {
+          rethrow;
+        }
+        print("Warning: Google Sheets API temporary response ($errStr). Retrying attempt ${attempt + 1}...");
+        await Future.delayed(Duration(milliseconds: 700 * (attempt + 1)));
+      }
+    }
+  }
+
+  Future<void> _markAsFollowedUpInternal({
+    required String email, 
+    required String messageSent, 
+    required String sheetName,
+    required List<String> assignments,
+  }) async {
     final ss = await _followUpSpreadsheetFuture;
     final sheet = ss.worksheetByTitle(sheetName);
     if (sheet == null) throw Exception("Sheet '$sheetName' not found.");

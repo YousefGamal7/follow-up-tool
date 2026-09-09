@@ -156,18 +156,19 @@ class DashboardCubit extends Cubit<DashboardState> {
     bool launched = false;
     final String encodedMsg = Uri.encodeComponent(customMessage);
     
-    String phone = s.phone.trim();
-    if (phone.startsWith('01') && phone.length == 11) {
-      phone = '+20${phone.substring(1)}';
-    } else if (!phone.startsWith('+')) {
-      phone = '+$phone';
+    String cleanPhone = s.phone.trim().replaceAll(RegExp(r'\D'), '');
+    if (cleanPhone.startsWith('00')) {
+      cleanPhone = cleanPhone.substring(2);
+    }
+    if (cleanPhone.startsWith('01') && cleanPhone.length == 11) {
+      cleanPhone = '20${cleanPhone.substring(1)}';
     }
 
-    final String tgUrl = "tg://msg?to=$phone&text=$encodedMsg";
+    final String tgUrl = "tg://resolve?phone=%2B$cleanPhone&text=$encodedMsg";
     try { launched = await launchUrl(Uri.parse(tgUrl), mode: LaunchMode.externalApplication); } catch (_) {}
 
     if (!launched) {
-      final String webUrl = "https://t.me/$phone?text=$encodedMsg";
+      final String webUrl = "https://t.me/+$cleanPhone?text=$encodedMsg";
       try { launched = await launchUrl(Uri.parse(webUrl), mode: LaunchMode.externalApplication); } catch (_) {}
     }
 

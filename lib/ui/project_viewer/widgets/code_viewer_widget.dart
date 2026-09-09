@@ -14,6 +14,11 @@ class CodeViewerWidget extends StatelessWidget {
     this.syntaxErrors = const [],
   });
 
+  String _getLineNumbers(String code) {
+    final lineCount = '\n'.allMatches(code).length + 1;
+    return List.generate(lineCount, (i) => '${i + 1}').join('\n');
+  }
+
   @override
   Widget build(BuildContext context) {
     if (code.isEmpty) {
@@ -57,15 +62,39 @@ class CodeViewerWidget extends StatelessWidget {
                 scrollDirection: Axis.horizontal,
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: HighlightView(
-                    code,
-                    language: language,
-                    theme: monokaiSublimeTheme,
-                    padding: const EdgeInsets.all(12),
-                    textStyle: const TextStyle(
-                      fontFamily: 'monospace',
-                      fontSize: 14,
-                    ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (language == 'dart')
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          margin: const EdgeInsets.only(right: 8),
+                          decoration: BoxDecoration(
+                            border: Border(
+                              right: BorderSide(color: Colors.white.withOpacity(0.2)),
+                            ),
+                          ),
+                          child: Text(
+                            _getLineNumbers(code),
+                            style: TextStyle(
+                              fontFamily: 'monospace',
+                              fontSize: 14,
+                              color: Colors.white.withOpacity(0.5),
+                            ),
+                            textAlign: TextAlign.right,
+                          ),
+                        ),
+                      HighlightView(
+                        code,
+                        language: language,
+                        theme: monokaiSublimeTheme,
+                        padding: const EdgeInsets.all(12),
+                        textStyle: const TextStyle(
+                          fontFamily: 'monospace',
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),

@@ -3,9 +3,10 @@ import '../../../models/student.dart';
 import '../../../providers/dashboard_provider.dart';
 import '../../../theme/modern_styles.dart';
 import 'package:adaptive_platform_ui/adaptive_platform_ui.dart';
+import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'screenshot_dialog.dart';
-
+import 'student_details_dialog.dart';
 DataRow buildStudentRow(
   BuildContext context,
   Student s,
@@ -17,22 +18,34 @@ DataRow buildStudentRow(
 
   List<DataCell> rowCells = [
     DataCell(
-      Row(
-        children: [
-          Text(
-            s.name,
-            style: TextStyle(
-              fontWeight: isWarning ? FontWeight.bold : FontWeight.normal,
-              color: ModernStyles.getTextColor(context),
+      GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          showDialog(
+            context: context,
+            builder: (context) => StudentDetailsDialog(student: s),
+          );
+        },
+        child: Row(
+          children: [
+            Text(
+              s.name,
+              style: TextStyle(
+                fontWeight: isWarning ? FontWeight.bold : FontWeight.normal,
+                color: ModernStyles.getTextColor(context),
+              ),
             ),
-          ),
-          if (alreadySent)
-            const Icon(
-              LucideIcons.checkCircle2,
-              color: Colors.green,
-              size: 16,
-            ),
-        ],
+            if (alreadySent)
+              const Padding(
+                padding: EdgeInsets.only(left: 4.0),
+                child: Icon(
+                  LucideIcons.checkCircle2,
+                  color: Colors.green,
+                  size: 16,
+                ),
+              ),
+          ],
+        ),
       ),
     ),
     DataCell(
@@ -55,6 +68,24 @@ DataRow buildStudentRow(
       Row(
         mainAxisSize: MainAxisSize.min,
         children: [
+          IconButton(
+            icon: Icon(
+              LucideIcons.copy,
+              color: ModernStyles.getTextColor(context),
+              size: 18,
+            ),
+            tooltip: 'Copy Email',
+            onPressed: () {
+              final email = s.email ?? '${s.name.replaceAll(' ', '')}@gmail.com';
+              Clipboard.setData(ClipboardData(text: email));
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Email copied: $email'),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon:  Icon(
               LucideIcons.camera,
@@ -141,9 +172,6 @@ DataRow buildStudentRow(
 
   return DataRow(
     selected: isSelected,
-    onSelectChanged: (v) {
-      provider.toggleStudentSelection(s, v == true);
-    },
     cells: rowCells,
   );
 }

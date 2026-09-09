@@ -9,11 +9,49 @@ import 'package:file_picker/file_picker.dart';
 import '../models/report_models.dart';
 
 class PdfService {
+  static DateTime? _parseDate(String? dateStr) {
+    if (dateStr == null || dateStr.isEmpty) return null;
+    
+    final parts = dateStr.split('/');
+    if (parts.length == 3) {
+      try {
+        return DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+      } catch (_) {}
+    } else if (parts.length == 2) {
+      try {
+        return DateTime(DateTime.now().year, int.parse(parts[0]), int.parse(parts[1]));
+      } catch (_) {}
+    }
+    
+    return DateTime.tryParse(dateStr);
+  }
+
   static Future<String?> generateAndShareTeamReport({
     required Map<String, List<ReportAssignment>> allGroupAssignments,
     required List<WorkshopSession> workshops,
     required List<BranchAttendance> attendance,
   }) async {
+    // Sort logic
+    final sortedWorkshops = List<WorkshopSession>.from(workshops);
+    sortedWorkshops.sort((a, b) {
+      final dateA = _parseDate(a.date);
+      final dateB = _parseDate(b.date);
+      if (dateA == null && dateB == null) return 0;
+      if (dateA == null) return 1;
+      if (dateB == null) return -1;
+      return dateA.compareTo(dateB);
+    });
+
+    final sortedAttendance = List<BranchAttendance>.from(attendance);
+    sortedAttendance.sort((a, b) {
+      final dateA = _parseDate(a.date);
+      final dateB = _parseDate(b.date);
+      if (dateA == null && dateB == null) return 0;
+      if (dateA == null) return 1;
+      if (dateB == null) return -1;
+      return dateA.compareTo(dateB);
+    });
+
     final pdf = pw.Document();
 
     pw.ImageProvider? logoImage;
@@ -52,12 +90,12 @@ class PdfService {
             content.add(pw.SizedBox(height: 20));
           }
 
-          content.addAll(_buildWorkshopsSection(workshops));
-          if (workshops.isNotEmpty) {
+          content.addAll(_buildWorkshopsSection(sortedWorkshops));
+          if (sortedWorkshops.isNotEmpty) {
             content.add(pw.SizedBox(height: 20));
           }
 
-          content.addAll(_buildAttendanceSection(attendance));
+          content.addAll(_buildAttendanceSection(sortedAttendance));
 
           return content;
         },
