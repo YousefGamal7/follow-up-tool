@@ -10,6 +10,7 @@ class FirestoreSyncService {
   // Collection References
   CollectionReference get _workshopsRef => _firestore.collection('workshops_$cycleName');
   CollectionReference get _attendanceRef => _firestore.collection('attendance_$cycleName');
+  CollectionReference get _assignmentsRef => _firestore.collection('assignments_$cycleName');
 
   // Generate a unique ID for a WorkshopSession
   String _generateWorkshopId(WorkshopSession session) {
@@ -41,20 +42,6 @@ class FirestoreSyncService {
     }
   }
 
-  // Sync a list of workshops to Firestore
-  Future<void> syncWorkshopsList(List<WorkshopSession> sessions) async {
-    for (final session in sessions) {
-      await syncWorkshop(session);
-    }
-  }
-
-  // Sync a list of attendance records to Firestore
-  Future<void> syncAttendanceList(List<BranchAttendance> records) async {
-    for (final record in records) {
-      await syncAttendanceRecord(record);
-    }
-  }
-
   // Fetch all workshops from Firestore
   Future<List<WorkshopSession>> fetchWorkshops() async {
     try {
@@ -73,6 +60,22 @@ class FirestoreSyncService {
       return snapshot.docs.map((doc) => BranchAttendance.fromJson(doc.data() as Map<String, dynamic>)).toList();
     } catch (e) {
       print('Error fetching attendance: $e');
+      return [];
+    }
+  }
+
+  // Fetch all assignments from Firestore
+  Future<List<ReportAssignment>> fetchAssignments() async {
+    try {
+      final snapshot = await _assignmentsRef.get();
+      return snapshot.docs.map((doc) => ReportAssignment(
+        name: doc['name'] ?? '',
+        submitted: doc['submitted'] ?? 0,
+        missing: doc['missing'] ?? 0,
+        deadline: doc['deadline'],
+      )).toList();
+    } catch (e) {
+      print('Error fetching assignments: $e');
       return [];
     }
   }

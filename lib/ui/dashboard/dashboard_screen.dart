@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:send_message/theme/modern_styles.dart';
+import 'package:send_message/theme/obsidian_theme.dart';
 import 'package:adaptive_platform_ui/adaptive_platform_ui.dart';
 import 'package:send_message/ui/project_viewer/project_viewer_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -21,108 +21,30 @@ class DashboardScreen extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isDesktop = constraints.maxWidth >= 800;
-        return AdaptiveScaffold(
-          appBar: AdaptiveAppBar(
-            title: isDesktop ? 'Blue Route Student Dashboard' : 'Dashboard',
-            actions: [
-              AdaptiveAppBarAction(
-                icon: LucideIcons.search,
-                iosSymbol: 'magnifyingglass',
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (context) => const StudentSearchBottomSheet(),
-                  );
-                },
-              ),
-              AdaptiveAppBarAction(
-                icon: LucideIcons.barChart2,
-                iosSymbol: 'chart.bar',
-                onPressed: () {
-                  final dashboardCubit = context.read<DashboardCubit>();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) {
-                        final groups = dashboardCubit.state.groups.where((g) => g != 'All').toList();
-                        return AdvancedTeamReportScreen(
-                          instructor: dashboardCubit.state.selectedInstructor ?? 'Yousef Gamal',
-                          cycleName: dashboardCubit.state.selectedCycle,
-                          groups: groups.isNotEmpty ? groups : ['Group 1 : Friday 10Am ( Dokki )'],
-                          initialGroup: dashboardCubit.state.selectedGroup == 'All' || dashboardCubit.state.selectedGroup == null
-                              ? (groups.isNotEmpty ? groups.first : 'Group 1 : Friday 10Am ( Dokki )')
-                              : dashboardCubit.state.selectedGroup!,
-                        );
-                      },
+        return Container(
+          color: ObsidianTheme.background,
+          child: isDesktop
+              ? Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: const [
+                    // Secondary Left Control Panel (280px)
+                    SizedBox(
+                      width: 280,
+                      child: FilterSidebarWidget(),
                     ),
-                  );
-                },
-              ),
-              AdaptiveAppBarAction(
-                icon: LucideIcons.calendar,
-                iosSymbol: 'calendar',
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const WeeklyReportScreen(),
+                    // Main High-Density Roster Matrix
+                    Expanded(
+                      child: StudentsTableWidget(),
                     ),
-                  );
-                },
-              ),
-              AdaptiveAppBarAction(
-                icon: LucideIcons.folderInput,
-                iosSymbol: 'folder.badge.plus',
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ProjectViewerScreen(),
-                    ),
-                  );
-                },
-              ),
-              AdaptiveAppBarAction(
-                onPressed: context.read<DashboardCubit>().clearSentHistory,
-                icon: LucideIcons.refreshCcw,
-                iosSymbol: 'arrow.clockwise',
-              ),
-              AdaptiveAppBarAction(
-                onPressed: () => context.read<DashboardCubit>().clearLocalCache(),
-                icon: LucideIcons.trash2,
-                iosSymbol: 'trash',
-              ),
-            ],
-          ),
-          body: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: ModernStyles.getCardColor(context),
-                  borderRadius: BorderRadius.circular(16),
+                  ],
+                )
+              : Column(
+                  children: [
+                    const SizedBox(height: 200, child: FilterSidebarWidget()),
+                    const Divider(height: 1, color: ObsidianTheme.borderWhite),
+                    const Expanded(child: StudentsTableWidget()),
+                  ],
                 ),
-                clipBehavior: Clip.antiAlias,
-                child: isDesktop
-                    ? Row(
-                        children: const [
-                          SizedBox(width: 300, child: FilterSidebarWidget()),
-                          Expanded(
-                            child: StudentsTableWidget(),
-                          ),
-                        ],
-                      )
-                    : Column(
-                        children: [
-                          const SizedBox(height: 200, child: FilterSidebarWidget()),
-                          const Expanded(child: StudentsTableWidget()),
-                        ],
-                      ),
-              ),
-            ),
-          ),
         );
       },
     );

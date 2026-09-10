@@ -5,7 +5,7 @@ import 'package:adaptive_platform_ui/adaptive_platform_ui.dart';
 import '../../../providers/dashboard_provider.dart';
 import '../../../features/dashboard/presentation/cubit/dashboard_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../theme/modern_styles.dart';
+import '../../../theme/obsidian_theme.dart';
 import 'history_log_widget.dart';
 
 class FilterSidebarWidget extends StatelessWidget {
@@ -16,7 +16,10 @@ class FilterSidebarWidget extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
-        color: ModernStyles.blueRouteSidebar,
+        color: ObsidianTheme.background,
+        border: Border(
+          right: BorderSide(color: ObsidianTheme.borderWhite),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -68,36 +71,60 @@ class FilterSidebarWidget extends StatelessWidget {
                       provider.selectedFilter,
                       provider.setFilter,
                     ),
-                    const Divider(height: 30, color: Colors.white24, thickness: 1),
-                    const Text(
-                      "📝 Message Template",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
+                    const Divider(height: 30, color: ObsidianTheme.borderWhite, thickness: 1),
+                    Row(
+                      children: const [
+                        Icon(LucideIcons.mail, size: 16, color: ObsidianTheme.warning),
+                        SizedBox(width: 8),
+                        Text(
+                          "Message Template",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: ObsidianTheme.textPrimary,
+                          ),
+                        ),
+                        Spacer(),
+                        Text(
+                          "Template ID: #04",
+                          style: TextStyle(fontSize: 10, color: ObsidianTheme.textMuted),
+                        )
+                      ],
                     ),
-                    const SizedBox(height: 10),
-                    AdaptiveSegmentedControl(
-                      labels: const ['Male', 'Female'],
-                      selectedIndex: provider.isMaleTemplate ? 0 : 1,
-                      onValueChanged: (index) {
-                        provider.toggleTemplateGender(index == 0);
-                      },
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildSegmentButton(
+                            title: 'Male',
+                            isSelected: provider.isMaleTemplate,
+                            onTap: () => provider.toggleTemplateGender(true),
+                          ),
+                        ),
+                        Expanded(
+                          child: _buildSegmentButton(
+                            title: 'Female',
+                            isSelected: !provider.isMaleTemplate,
+                            onTap: () => provider.toggleTemplateGender(false),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
                     if (provider.savedTemplates.isNotEmpty)
                       Container(
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          color: ModernStyles.blueRouteBackground,
+                          borderRadius: BorderRadius.circular(6),
+                          color: ObsidianTheme.surfaceRecessed,
+                          border: Border.all(color: ObsidianTheme.borderWhite),
                         ),
                         padding: const EdgeInsets.symmetric(horizontal: 10),
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
                             isExpanded: true,
-                            dropdownColor: ModernStyles.blueRouteSidebar,
-                            iconEnabledColor: Colors.white,
-                            hint: const Text('Select a saved template...', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                            dropdownColor: ObsidianTheme.surfaceCard,
+                            iconEnabledColor: ObsidianTheme.textSecondary,
+                            hint: const Text('Select a saved template...', style: TextStyle(color: ObsidianTheme.textMuted, fontSize: 12)),
                             value:
                                 provider.savedTemplates.contains(
                                   provider.selectedTemplate,
@@ -108,7 +135,7 @@ class FilterSidebarWidget extends StatelessWidget {
                                 .map(
                                   (e) => DropdownMenuItem(
                                     value: e,
-                                    child: Text(e, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 12)),
+                                    child: Text(e, overflow: TextOverflow.ellipsis, style: const TextStyle(color: ObsidianTheme.textSecondary, fontSize: 12)),
                                   ),
                                 )
                                 .toList(),
@@ -116,38 +143,57 @@ class FilterSidebarWidget extends StatelessWidget {
                           ),
                         ),
                       ),
-                    const SizedBox(height: 10),
-                    AdaptiveTextField(
-                      controller: provider.templateController,
-                      maxLines: 4,
-                      minLines: 4,
-                      placeholder: "Hey [Name], you missed [Missed] tasks",
-                      keyboardType: TextInputType.multiline,
-                    ),
-                    const SizedBox(height: 10),
-                    AdaptiveButton.child(
-                      onPressed: () => provider.saveTemplate(context),
-                      style: AdaptiveButtonStyle.tinted,
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(LucideIcons.save, size: 16),
-                          SizedBox(width: 8),
-                          Text('Save Template'),
-                        ],
+                    const SizedBox(height: 12),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: ObsidianTheme.surfaceRecessed,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: ObsidianTheme.borderWhite),
+                      ),
+                      padding: const EdgeInsets.all(8),
+                      child: TextField(
+                        controller: provider.templateController,
+                        maxLines: 4,
+                        minLines: 4,
+                        style: const TextStyle(color: ObsidianTheme.textSecondary, fontSize: 13),
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          hintText: "Hey [Name], you missed [Missed] tasks",
+                          hintStyle: TextStyle(color: ObsidianTheme.textMuted, fontSize: 13),
+                        ),
                       ),
                     ),
-                    const Divider(height: 30, color: Colors.white24, thickness: 1),
-                    const Text(
-                      "🎟️ Dynamic Tickets & Sync",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                        color: Colors.white,
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () => provider.saveTemplate(context),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: ObsidianTheme.warning,
+                          side: const BorderSide(color: ObsidianTheme.borderWhite),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        icon: const Icon(LucideIcons.save, size: 16),
+                        label: const Text('Save Template', style: TextStyle(fontSize: 13, color: ObsidianTheme.textSecondary)),
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const Divider(height: 30, color: ObsidianTheme.borderWhite, thickness: 1),
+                    Row(
+                      children:  [
+                        Icon(LucideIcons.ticket, size: 16, color: ObsidianTheme.warning),
+                        SizedBox(width: 8),
+                        Text(
+                          "Dynamic Tickets & Sync",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: ObsidianTheme.textPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
                     _buildDrop(
                       context,
                       "Target Task",
@@ -155,33 +201,43 @@ class FilterSidebarWidget extends StatelessWidget {
                       provider.selectedDynamicTask,
                       provider.setDynamicTask,
                     ),
-                    AdaptiveButton.child(
-                      onPressed: provider.isLoading ? null : () {
-                        if (provider.selectedDynamicTask != null) {
-                          provider.syncGradesToStatus(provider.selectedDynamicTask!);
-                        }
-                      },
-                      style: AdaptiveButtonStyle.filled,
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(LucideIcons.checkCheck, size: 16),
-                          SizedBox(width: 8),
-                          Text('Sync + Mark Submitted'),
-                        ],
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: provider.isLoading ? null : () {
+                          if (provider.selectedDynamicTask != null) {
+                            provider.syncGradesToStatus(provider.selectedDynamicTask!);
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: ObsidianTheme.primary,
+                          foregroundColor: ObsidianTheme.background,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          disabledBackgroundColor: ObsidianTheme.primary.withValues(alpha: 0.5),
+                        ),
+                        icon: const Icon(LucideIcons.refreshCw, size: 16),
+                        label: const Text('Sync + Mark Submitted', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      "📄 Activity History",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                        color: Colors.white,
-                      ),
+                    const SizedBox(height: 24),
+                    Row(
+                      children: const [
+                        Icon(LucideIcons.fileText, size: 16, color: ObsidianTheme.primary),
+                        SizedBox(width: 8),
+                        Text(
+                          "Activity History",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: ObsidianTheme.textPrimary,
+                          ),
+                        ),
+                        Spacer(),
+                        Icon(LucideIcons.circle, size: 8, color: ObsidianTheme.success),
+                      ],
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
                     const SizedBox(height: 200, child: HistoryLogWidget()),
                   ],
                 );
@@ -193,18 +249,45 @@ class FilterSidebarWidget extends StatelessWidget {
               return Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16.0),
-                decoration: const BoxDecoration(
-                  border: Border(top: BorderSide(color: Colors.white24)),
+                decoration: BoxDecoration(
+                  color: ObsidianTheme.background,
+                  border: const Border(
+                    top: BorderSide(color: ObsidianTheme.borderWhite),
+                    right: BorderSide(color: ObsidianTheme.borderWhite),
+                  ),
                 ),
                 child: Text(
                   "${provider.selectedStudents.length} Students Selected",
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: ObsidianTheme.primary, fontSize: 13),
                   textAlign: TextAlign.center,
                 ),
               );
             },
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSegmentButton({required String title, required bool isSelected, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? ObsidianTheme.primary : ObsidianTheme.background,
+          border: Border.all(color: ObsidianTheme.primary),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          title,
+          style: TextStyle(
+            color: isSelected ? ObsidianTheme.background : ObsidianTheme.textSecondary,
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
     );
   }
@@ -226,22 +309,23 @@ class FilterSidebarWidget extends StatelessWidget {
             style: const TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 12,
-              color: Colors.white,
+              color: ObsidianTheme.textSecondary,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10),
-            height: 36,
+            height: 38,
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
+              color: ObsidianTheme.surfaceRecessed,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: ObsidianTheme.borderWhite),
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
                 isExpanded: true,
-                dropdownColor: Colors.white,
-                iconEnabledColor: ModernStyles.blueRouteSidebar,
+                dropdownColor: ObsidianTheme.surfaceCard,
+                iconEnabledColor: ObsidianTheme.textSecondary,
                 value: (items.contains(val))
                     ? val
                     : (items.isNotEmpty ? items[0] : null),
@@ -249,11 +333,7 @@ class FilterSidebarWidget extends StatelessWidget {
                     .map(
                       (e) => DropdownMenuItem(
                         value: e,
-                        child: Text(
-                          e,
-                          style: const TextStyle(fontSize: 12, color: ModernStyles.blueRouteDarkText),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        child: Text(e, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, color: ObsidianTheme.textPrimary)),
                       ),
                     )
                     .toList(),

@@ -34,6 +34,7 @@ class DashboardProvider extends ChangeNotifier {
   ];
   List<String> groups = ['All'];
   List<String> assignments = [];
+  Map<String, String> deadlines = {};
   List<String> filters = [
     'All',
     'Late only (late)',
@@ -326,6 +327,7 @@ class DashboardProvider extends ChangeNotifier {
       allStudents = data['students'];
       groups = data['groups'];
       assignments = data['assignments'];
+      deadlines = data['deadlines'] as Map<String, String>? ?? {};
       selectedAssignment = data['selectedAssignment'];
       applyFilters();
       _addLog("Fetched data for instructor: $selectedInstructor");

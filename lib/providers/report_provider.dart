@@ -4,11 +4,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/report_models.dart';
 import '../services/multi_sheet_sync_service.dart';
 import '../services/firestore_sync_service.dart';
+import '../services/google_sheets_service.dart';
 import '../core/config/cycle_config.dart' as config;
 
 class ReportProvider extends ChangeNotifier {
-  final String instructor;
-  final String cycleName;
+  String instructor;
+  String cycleName;
   List<String> availableGroups;
   String selectedGroup;
 
@@ -24,13 +25,13 @@ class ReportProvider extends ChangeNotifier {
     required this.cycleName,
     required List<String> groups, 
     required String initialGroup
-  }) : availableGroups = groups,
+  }) : availableGroups = groups.isNotEmpty ? groups : ['All'],
        selectedGroup = initialGroup {
     if (!availableGroups.contains(selectedGroup) && availableGroups.isNotEmpty) {
       selectedGroup = availableGroups[0];
     }
     _loadData();
-    _fetchAssignmentsFromGSheets();
+    _fetchGroupsAndAssignments();
   }
 
   void setGroup(String newGroup) {
@@ -40,7 +41,22 @@ class ReportProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> _fetchAssignmentsFromGSheets() async {
+  void setCycle(String newCycle) {
+    if (cycleName != newCycle) {
+      cycleName = newCycle;
+      selectedGroup = 'All';
+      availableGroups = ['All'];
+      _allAssignments.clear();
+      _workshops.clear();
+      _attendanceRecords.clear();
+      notifyListeners();
+      
+      _loadData();
+      _fetchGroupsAndAssignments();
+    }
+  }
+
+  Future<void> _fetchGroupsAndAssignments() async {
     try {
       isLoadingAssignments = true;
       assignmentsError = null;
@@ -53,6 +69,21 @@ class ReportProvider extends ChangeNotifier {
 
       final syncService = MultiSheetSyncService();
       syncService.setSpreadsheetIds(cycle.gradesSpreadsheetId, cycle.followUpSpreadsheetId);
+      
+      // Discover groups using GoogleSheetsService
+      final gSheetsService = GoogleSheetsService();
+      gSheetsService.setSpreadsheetId(cycle.gradesSpreadsheetId);
+      final data = await gSheetsService.fetchInstructorData(instructor, null);
+      
+      if (data != null) {
+        availableGroups = data['groups'] as List<String>;
+        if (!availableGroups.contains(selectedGroup) && availableGroups.isNotEmpty) {
+           selectedGroup = availableGroups[0];
+        }
+      } else {
+        availableGroups = ['All'];
+        selectedGroup = 'All';
+      }
       
       _allAssignments = await syncService.getAllGroupAssignmentsReport(instructor, availableGroups);
       
@@ -74,11 +105,17 @@ class ReportProvider extends ChangeNotifier {
   Map<String, List<ReportAssignment>> get allActiveAssignments {
     Map<String, List<ReportAssignment>> result = {};
     _allAssignments.forEach((group, assignments) {
+      if (group == 'All') return;
       final active = assignments.where((a) => a.deadline != null && a.deadline!.trim().isNotEmpty).toList();
       if (active.isNotEmpty) {
         result[group] = active;
       }
     });
+    // If there are no individual groups (only 'All' existed), return 'All' so the PDF isn't empty.
+    if (result.isEmpty && _allAssignments.containsKey('All')) {
+      final active = _allAssignments['All']!.where((a) => a.deadline != null && a.deadline!.trim().isNotEmpty).toList();
+      if (active.isNotEmpty) result['All'] = active;
+    }
     return result;
   }
 

@@ -792,7 +792,6 @@ class MultiSheetSyncService {
   Future<Map<String, List<ReportAssignment>>> getAllGroupAssignmentsReport(String sheetName, List<String> availableGroups) async {
     Map<String, List<ReportAssignment>> allGroupsMap = {};
     for (String group in availableGroups) {
-      if (group == 'All') continue;
       allGroupsMap[group] = await getAssignmentsReport(sheetName, groupName: group);
     }
     return allGroupsMap;
@@ -840,10 +839,12 @@ class MultiSheetSyncService {
 
       for (int i = headerRowIndex + 1; i < allRows.length; i++) {
          if (allRows[i].isEmpty) continue;
-         String firstCell = allRows[i][0].toString().trim();
          
-         if (firstCell.toLowerCase().contains("group")) {
-           currentGroup = firstCell;
+         // In some sheets, the group name is in column B (index 1) and column A is empty.
+         String rowText = allRows[i].take(3).join(" ").toLowerCase();
+         
+         if (rowText.contains("group")) {
+           currentGroup = allRows[i].take(3).firstWhere((c) => c.toString().toLowerCase().contains("group"), orElse: () => allRows[i][0]).toString().trim();
            isDeadlinesRow = true; // The row immediately after a group header is the deadlines row
            continue; 
          }
@@ -874,7 +875,10 @@ class MultiSheetSyncService {
            continue; 
          }
 
-         if (firstCell.isEmpty || firstCell.toLowerCase() == "gmail") continue;
+         String firstCell = allRows[i].isNotEmpty ? allRows[i][0].toString().trim() : '';
+         String secondCell = allRows[i].length > 1 ? allRows[i][1].toString().trim() : '';
+         if (firstCell.isEmpty && secondCell.isEmpty) continue;
+         if (firstCell.toLowerCase() == "gmail" || secondCell.toLowerCase() == "name") continue;
          
          if (groupName != null && groupName != 'All' && currentGroup != groupName) {
            continue;

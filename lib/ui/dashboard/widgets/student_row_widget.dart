@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import '../../../models/student.dart';
 import '../../../providers/dashboard_provider.dart';
-import '../../../theme/modern_styles.dart';
+import '../../../theme/obsidian_theme.dart';
 import 'package:adaptive_platform_ui/adaptive_platform_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'screenshot_dialog.dart';
 import 'student_details_dialog.dart';
+
 DataRow buildStudentRow(
   BuildContext context,
   Student s,
   DashboardProvider provider,
 ) {
   final isSelected = provider.selectedStudents.contains(s);
-  final isWarning = s.missedCount >= 6;
   final alreadySent = provider.sentPhones.contains(s.phone);
 
   List<DataCell> rowCells = [
@@ -30,18 +30,18 @@ DataRow buildStudentRow(
           children: [
             Text(
               s.name,
-              style: TextStyle(
-                fontWeight: isWarning ? FontWeight.bold : FontWeight.normal,
-                color: ModernStyles.getTextColor(context),
+              style: const TextStyle(
+                color: ObsidianTheme.textPrimary,
+                fontSize: 13,
               ),
             ),
             if (alreadySent)
               const Padding(
-                padding: EdgeInsets.only(left: 4.0),
+                padding: EdgeInsets.only(left: 8.0),
                 child: Icon(
                   LucideIcons.checkCircle2,
-                  color: Colors.green,
-                  size: 16,
+                  color: ObsidianTheme.success,
+                  size: 14,
                 ),
               ),
           ],
@@ -52,16 +52,23 @@ DataRow buildStudentRow(
       Text(
         "${s.missedCount}",
         style: TextStyle(
-          color: isWarning ? Colors.red : ModernStyles.getTextColor(context),
-          fontWeight: isWarning ? FontWeight.bold : FontWeight.normal,
+          color: s.missedCount > 0 ? ObsidianTheme.warning : ObsidianTheme.textSecondary,
+          fontWeight: s.missedCount > 0 ? FontWeight.bold : FontWeight.normal,
+          fontSize: 13,
         ),
       ),
     ),
     DataCell(
-      AdaptiveButton(
+      OutlinedButton(
         onPressed: () => showFollowUpDialog(context, s, provider),
-        style: alreadySent ? AdaptiveButtonStyle.filled : AdaptiveButtonStyle.tinted,
-        label: 'Message',
+        style: OutlinedButton.styleFrom(
+          foregroundColor: ObsidianTheme.warning,
+          side: const BorderSide(color: ObsidianTheme.warning, width: 1),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          minimumSize: const Size(0, 32),
+        ),
+        child: const Text('Message', style: TextStyle(fontSize: 11)),
       ),
     ),
     DataCell(
@@ -69,29 +76,16 @@ DataRow buildStudentRow(
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
-            icon: Icon(
-              LucideIcons.copy,
-              color: ModernStyles.getTextColor(context),
-              size: 18,
-            ),
+            icon: const Icon(LucideIcons.copy, color: ObsidianTheme.textMuted, size: 16),
             tooltip: 'Copy Email',
             onPressed: () {
               final email = s.email ?? '${s.name.replaceAll(' ', '')}@gmail.com';
               Clipboard.setData(ClipboardData(text: email));
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Email copied: $email'),
-                  duration: const Duration(seconds: 2),
-                ),
-              );
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Email copied: $email')));
             },
           ),
           IconButton(
-            icon:  Icon(
-              LucideIcons.camera,
-              color: ModernStyles.getTextColor(context),
-              size: 18,
-            ),
+            icon: const Icon(LucideIcons.camera, color: ObsidianTheme.textMuted, size: 16),
             tooltip: 'Generate visual student report',
             onPressed: () {
               showDialog(
@@ -104,26 +98,14 @@ DataRow buildStudentRow(
             },
           ),
           IconButton(
-            icon:  Icon(
-              LucideIcons.minusCircle,
-              color: ModernStyles.getTextColor(context),
-              size: 18,
-            ),
+            icon: const Icon(LucideIcons.minusSquare, color: ObsidianTheme.textMuted, size: 16),
             tooltip: 'Excuse from assignments',
-            onPressed: () {
-              showExcuseDialog(context, s, provider);
-            },
+            onPressed: () => showExcuseDialog(context, s, provider),
           ),
           IconButton(
-            icon:  Icon(
-              LucideIcons.xCircle,
-              color: ModernStyles.getTextColor(context),
-              size: 18,
-            ),
+            icon: const Icon(LucideIcons.xCircle, color: ObsidianTheme.textMuted, size: 16),
             tooltip: 'Mark No Answer',
-            onPressed: () {
-              showNoAnswerDialog(context, s, provider);
-            },
+            onPressed: () => showNoAnswerDialog(context, s, provider),
           ),
         ],
       ),
@@ -135,13 +117,13 @@ DataRow buildStudentRow(
     bool isMissing = cellGrade.isEmpty;
     Color badgeColor;
     if (isMissing) {
-      badgeColor = ModernStyles.blueRouteBadgeGrey;
+      badgeColor = ObsidianTheme.surfaceRecessed;
     } else {
       double? val = double.tryParse(cellGrade);
       if (val != null && val >= 9) {
-        badgeColor = ModernStyles.blueRouteBadgeCyan;
+        badgeColor = ObsidianTheme.primary;
       } else {
-        badgeColor = ModernStyles.blueRouteBadgeBlue;
+        badgeColor = ObsidianTheme.primaryHover; // Slightly darker for lower grades
       }
     }
 
@@ -159,9 +141,9 @@ DataRow buildStudentRow(
             child: Text(
               cellGrade,
               style: TextStyle(
-                color: isMissing ? Colors.transparent : Colors.white,
+                color: isMissing ? Colors.transparent : ObsidianTheme.background,
                 fontWeight: FontWeight.bold,
-                fontSize: 12,
+                fontSize: 11,
               ),
             ),
           ),

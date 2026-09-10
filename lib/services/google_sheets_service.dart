@@ -90,21 +90,57 @@ class GoogleSheetsService {
       }
 
       String currentGroup = "No Group";
+      bool isDeadlinesRow = false;
+      Map<String, String> assignmentDeadlines = {};
+
       for (int i = headerRowIndex + 1; i < allRows.length; i++) {
         var row = allRows[i];
         if (row.isEmpty) continue;
-        String firstCell = row[0].toString().trim();
+        
+        String rowText = row.take(3).join(" ").toLowerCase();
 
-        if (firstCell.toLowerCase().contains("group")) {
-          currentGroup = firstCell;
+        if (rowText.contains("group")) {
+          currentGroup = row.take(3).firstWhere((c) => c.toString().toLowerCase().contains("group"), orElse: () => row[0]).toString().trim();
           foundGroups.add(currentGroup);
+          isDeadlinesRow = true;
           continue;
         }
+        
+        if (isDeadlinesRow) {
+           isDeadlinesRow = false;
+           // Grab deadlines for this group (or globally if it's the first time)
+           if (assignmentDeadlines.isEmpty) {
+             for (int k = firstTaskColIndex; k < headerRow.length; k++) {
+                String taskName = headerRow[k].toString().trim();
+                if (taskName.isEmpty || taskName.contains("Full Mark")) continue;
+                if (k < row.length) {
+                   String rawDeadline = row[k].toString().trim();
+                   if (int.tryParse(rawDeadline) != null) {
+                      int days = int.parse(rawDeadline);
+                      if (days > 40000) {
+                         DateTime date = DateTime(1899, 12, 30).add(Duration(days: days));
+                         assignmentDeadlines[taskName] = "${date.day}/${date.month}";
+                      } else {
+                         assignmentDeadlines[taskName] = rawDeadline;
+                      }
+                   } else {
+                      assignmentDeadlines[taskName] = rawDeadline;
+                   }
+                }
+             }
+           }
+           continue;
+        }
 
-        if (row.length > 2 && row[1].toString().trim().isNotEmpty && !firstCell.contains("Gmail")) {
-          String name = row[1].toString();
+        String firstCell = row.isNotEmpty ? row[0].toString().trim() : '';
+        String secondCell = row.length > 1 ? row[1].toString().trim() : '';
+        if (firstCell.isEmpty && secondCell.isEmpty) continue;
+        if (firstCell.toLowerCase() == "gmail" || secondCell.toLowerCase() == "name") continue;
+
+        if (row.length > 2 && secondCell.isNotEmpty && firstCell.toLowerCase() != "email" && firstCell.toLowerCase() != "gmail") {
+          String name = secondCell;
           String email = firstCell; // First cell usually contains the email in Grades sheet.
-          String rawPhone = row[2].toString();
+          String rawPhone = row.length > 2 ? row[2].toString() : '';
           String currentGrade = row.length > targetTaskColIndex ? row[targetTaskColIndex].toString() : "";
 
           int misses = 0;
@@ -143,6 +179,7 @@ class GoogleSheetsService {
         'students': tempList,
         'groups': foundGroups.toList(),
         'assignments': foundAssignments,
+        'deadlines': assignmentDeadlines,
         'selectedAssignment': currentSelectedAssignment,
       };
     } catch (e) {
